@@ -27,18 +27,20 @@ class EventTypes(Enum):
     DRAW_CARD = "DRAW_CARD"
     TURN_START = "TURN_START"
 
-class EventCallbacks:
-  self.callbacks = defaultdict(list)
 
-  def register_callback(event_type):
-    pass
+class EventCallbacks:
+    callbacks = defaultdict(list)
+
+    def register_callback(event_type):
+        pass
+
 
 class RoundState:
-    self.event_queue = []
-    self.player = None
+    event_queue = []
 
-    def __init__():
-        pass
+    def __init__(self, player, enemy):
+        self.player = player
+        self.enemy = enemy
 
     def play_card(self, card):
         if card.type == CardType.ATTACK:
@@ -54,7 +56,8 @@ class RoundState:
 
     def start_turn(self):
         # turn N specific callbacks, e.g. Captain's Wheel
-
+        pass
 
     def end_turn(self):
         # call end turn callbacks
+        pass
