@@ -11,9 +11,19 @@ player inventory
     gold
     keys (for later)
 
+buffs...
+    artifact
+        artifact order? e.g. if an attack applies both weak and frail
+        which one gets countered first?
+    
+
 intensity debuffs...
     dexterity down: reduce dex by N every turn
     dexterity negative: decreases block gained from cards
+        - dexterity only works for cards that directly give buff
+        does not work for powers and other buff-based cards
+        - changes to dexterity are either for one turn or the entire round
+        e.g. speed potion vs wraith form
     strength down
     strength negative
     poison
@@ -39,10 +49,26 @@ no stacks...
 """
 
 
-class Combatant:
-    # intensity debuffs
-    dexterity_down = 0
-    dexterity_negative = 0
+class EffectType(Enum):
+    DEXTERITY = auto()
+    DEXTERITY_DELTA = auto()
+    STRENGTH = auto()
+    STRENGTH_DELTA = auto()
+
+    POISON = auto()
+    FRAIL = auto()
+    VULNERABLE = auto()
+    WEAK = auto()
+
+    FRAIL_MODIFIER = auto()
+    VULNERABLE_MODIFIER = auto()
+    WEAK_MODIFIER = auto()
+
+
+class Character:
+    # intensity effects
+    dexterity = 0
+    dexterity_delta = 0
     strength_down = 0
     strength_negative = 0
     poison = 0
@@ -57,15 +83,41 @@ class Combatant:
     VULNERABLE_MODIFIER = .5
     WEAK_MODIFIER = .25
 
+    block = 0
+
     def __init__(self):
         pass
 
+    # receive attack from opponent
+    def receive_attack():
+        pass
 
-class CharacterType(Enum):
+    # receive effect from opponent
+    def receive_effect():
+        pass
+
+
+class Attack:
+    def __init__(
+        self,
+        name,
+        base_damage,
+        hit_count,
+        intent,
+        effects,  # buffs, debuffs
+    ):
+        self.name = name
+        self.base_damage = base_damage
+        self.hit_count = hit_count
+        self.intent = intent
+        self.effects = effects
+
+
+class PlayerType(Enum):
     IRONCLAD = auto()
 
 
-class Character(Combatant):
+class Player(Character):
     potions = []
     relics = []
     deck = []
@@ -80,9 +132,15 @@ class Character(Combatant):
 
 
 class EnemyType(Enum):
-    pass
+    BOSS = auto()
+    ELITE = auto()
 
 
-class Enemy(Combatant):
+class Enemy(Character):
+    move_order = []
+
     def __init__(self, type):
         self.type = type
+
+    def get_move(self):
+        raise NotImplementedError("Each enemy must define its move behavior.")

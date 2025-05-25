@@ -1,6 +1,22 @@
 from enum import Enum, auto
 
 
+"""
+mechanics to consider...
+anger - add a copy of this card
+armaments - upgrade a card in your hand
+body slam - deal damage equal to your block
+clash - can only be played if every card in your hand is an attack
+sword boomerang - deal 3 damage to a random enemy 3 times
+wild strike - deal 12 damage, shuffle a wound into your draw pile
+blood for blood - costs 1 less for each time you lose hp
+searing blow - can be upgraded any number of times
+sever soul - exhaust all non-attack cards in your hand
+feed - if fatal, raise your max hp by 3
+forethought - put a card from your hand to the bottom of your draw pile, costs 0 until player
+"""
+
+
 class CardType(Enum):
     ATTACK = auto()
     SKILL = auto()
@@ -34,19 +50,6 @@ class Card:
         self.damage = damage
         self.vulnerable = vulnerable
         self.weak = weak
-
-        '''
-        anger - add a copy of this card
-        armaments - upgrade a card in your hand
-        body slam - deal damage equal to your block
-        clash - can only be played if every card in your hand is an attack
-        sword boomerang - deal 3 damage to a random enemy 3 times
-        wild strike - deal 12 damage, shuffle a wound into your draw pile
-        blood for blood - costs 1 less for each time you lose hp
-        searing blow - can be upgraded any number of times
-        sever soul - exhaust all non-attack cards in your hand
-        feed - if fatal, raise your max hp by 3
-        '''
 
         self.upgraded = False
         self.description = ""

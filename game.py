@@ -1,5 +1,5 @@
 from round_state import RoundState
-
+from characters.character import Player, PlayerType
 
 """
 map
@@ -18,3 +18,15 @@ ascension modes
 
 
 round_state = RoundState()
+
+
+# generate map (enemies for each room, etc)
+
+# create character
+player = Player(
+    PlayerType.IRONCLAD,
+    [],  # potions
+    [],  # relics
+    [],  # deck
+    0,  # gold
+)
