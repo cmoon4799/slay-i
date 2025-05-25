@@ -1,5 +1,6 @@
 from enum import Enum, auto
-
+from characters.character import Attack, Effect, Target
+from typing import List
 
 """
 mechanics to consider...
@@ -33,23 +34,25 @@ class CardRarity(Enum):
     SPECIAL = auto()
 
 
-class CardTarget(Enum):
-    ALL = auto()
-    SINGLE = auto()
-    NONE = auto()
-
-
 class Card:
-    def __init__(self, name, cost, card_type: CardType, rarity: CardRarity, target: CardTarget, damage, vulnerable, weak):
+    def __init__(
+        self,
+        name,
+        cost,
+        card_type: CardType,
+        rarity: CardRarity,
+        target: Target,
+        attacks: List[Attack],
+        effects: List[Effect],
+    ):
         self.name = name
         self.cost = cost
         self.type = card_type
         self.rarity = rarity
         self.target = target
 
-        self.damage = damage
-        self.vulnerable = vulnerable
-        self.weak = weak
+        self.attacks = attacks
+        self.effects = effects
 
         self.upgraded = False
         self.description = ""

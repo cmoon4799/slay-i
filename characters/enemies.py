@@ -1,61 +1,110 @@
-from character import Enemy, Attack
+from character import Enemy, Attack, Effect
 from enum import Enum, auto
+import random
+
+
+class Intent(Enum):
+    ATTACK = auto()
+    ATTACK_DEFEND = auto()
+    DEFEND_BUFF = auto()
 
 
 class JawWorm(Enemy):
     class Moves(Enum):
-        CHOMP = auto()
-        THRASH = auto()
+        CHOMP = [
+            Attack(
+                name="CHOMP",
+                base_damage=11,
+                hit_count=1,
+                intent=Intent.ATTACK
+            )
+        ]
+        THRASH = [
+            Attack(
+                name="THRASH",
+                base_damage=7,
+                hit_count=1,
+                intent=Intent.ATTACK_DEFEND
+            ),
+            Effect(
+                name="",
+                base_damage=)
+        ]
         BELLOW = auto()
 
     def __init__(self):
-        self.move_
+        super().__init__()
+        self.move_order = []
+        self.damage = [
+            Attack(name="CHOMP", base_damage=11,
+                   hit_count=1, intent=Intent.ATTACK),
+            Attack(name="THRASH", base_damage=7,
+                   hit_count=2, intent=Intent.ATTACK_DEFEND)
+        ]
+
+    def last_move(self, move):
+        return self.move_order and self.move_order[-1] == move
+
+    def last_two_moves(self, move):
+        return len(self.move_order) >= 2 and all(m == move for m in self.move_order[-2:])
 
     def get_move(self):
-        # use chomp as first move
-        if len(self.move_order) == 0:
+        num = random.random()
+        if len(self.first_move) == 0:
+            self.first_move = False
+            chosen = self.Moves.CHOMP
+            intent = Intent.ATTACK
+            dmg = self.damage[0]
 
-		// Use chomp as the first move
-		if (firstMove) {
-			firstMove = false;
-			setMove(CHOMP, Intent.ATTACK, damage.get(0).base);
-			return ;
-		}
+        elif num < .25:
+            if self.last_move(self.Moves.CHOMP):
+                if random.random() < 0.5625:
+                    chosen = self.Moves.BELLOW
+                    intent = Intent.DEFEND_BUFF
+                    dmg = None
+                else:
+                    chosen = self.Moves.THRASH
+                    intent = Intent.ATTACK_DEFEND
+                    dmg = self.damage[1]
+            else:
+                chosen = self.Moves.CHOMP
+                intent = Intent.ATTACK
+                dmg = self.damage[0]
 
-		// 25 % Chance to Chomp
-		if (num < 25) {
-			if (lastMove(CHOMP)) {
-				if (AbstractDungeon.aiRng.randomBoolean(0.5625f)) {
-					setMove(MOVES[0], BELLOW, Intent.DEFEND_BUFF);
-				} else {
-					setMove(THRASH, Intent.ATTACK_DEFEND, damage.get(1).base);
-				}
-			} else {
-				setMove(CHOMP, Intent.ATTACK, damage.get(0).base);
-			}
+        elif num < .55:
+            if self.last_two_moves(self.Moves.THRASH):
+                if random.random() < 0.357:
+                    chosen = self.Moves.CHOMP
+                    intent = Intent.ATTACK
+                    dmg = self.damage[0]
+                else:
+                    chosen = self.Moves.BELLOW
+                    intent = Intent.DEFEND_BUFF
+                    dmg = None
+            else:
+                chosen = self.Moves.THRASH
+                intent = Intent.ATTACK_DEFEND
+                dmg = self.damage[1]
 
-			// 35 % chance to use Thrash
-		} else if (num < 55) {
-			if (lastTwoMoves(THRASH)) {
-				if (AbstractDungeon.aiRng.randomBoolean(0.357f)) {
-					setMove(CHOMP, Intent.ATTACK, damage.get(0).base);
-				} else {
-					setMove(MOVES[0], BELLOW, Intent.DEFEND_BUFF);
-				}
-			} else {
-				setMove(THRASH, Intent.ATTACK_DEFEND, damage.get(1).base);
-			}
+        else:
+            if self.last_move(self.Moves.BELLOW):
+                if random.random() < 0.416:
+                    chosen = self.Moves.CHOMP
+                    intent = Intent.ATTACK
+                    dmg = self.damage[0]
+                else:
+                    chosen = self.Moves.THRASH
+                    intent = Intent.ATTACK_DEFEND
+                    dmg = self.damage[1]
+            else:
+                chosen = self.Moves.BELLOW
+                intent = Intent.DEFEND_BUFF
+                dmg = None
 
-			// 45 % chance to use BELLOW
-		} else {
-			if (lastMove(BELLOW)) {
-				if (AbstractDungeon.aiRng.randomBoolean(0.416f)) {
-					setMove(CHOMP, Intent.ATTACK, damage.get(0).base);
-				} else {
-					setMove(THRASH, Intent.ATTACK_DEFEND, damage.get(1).base);
-				}
-			} else {
-				setMove(MOVES[0], BELLOW, Intent.DEFEND_BUFF);
-			}
-		}
-	}
+        self.move_order.append(chosen)
+        return Attack(
+            name=chosen.name,
+            base_damage=(dmg.base_damage if dmg else 0),
+            hit_count=(dmg.hit_count if dmg else 0),
+            intent=intent
+        )

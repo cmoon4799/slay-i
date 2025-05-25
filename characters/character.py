@@ -1,5 +1,5 @@
 from enum import Enum, auto
-
+from typing import Dict
 """
 enemies operate similarly to players, base class can be the same
 
@@ -49,6 +49,18 @@ no stacks...
 """
 
 
+class Intent(Enum):
+    ATTACK = auto()
+    ATTACK_DEFEND = auto()
+    DEFEND_BUFF = auto()
+
+
+class Target(Enum):
+    ALL = auto()
+    SINGLE = auto()
+    NONE = auto()
+
+
 class EffectType(Enum):
     DEXTERITY = auto()
     DEXTERITY_DELTA = auto()
@@ -63,6 +75,13 @@ class EffectType(Enum):
     FRAIL_MODIFIER = auto()
     VULNERABLE_MODIFIER = auto()
     WEAK_MODIFIER = auto()
+
+
+class Effect:
+    def __init__(self, effect: Dict[EffectType, int], target: Target):
+        self.effect = {key: key.value() for key in EffectType}.update(effect)
+        self.target = target
+        pass
 
 
 class Character:
@@ -103,14 +122,12 @@ class Attack:
         name,
         base_damage,
         hit_count,
-        intent,
-        effects,  # buffs, debuffs
+        intent: Intent,  # for enemy attack
     ):
         self.name = name
         self.base_damage = base_damage
         self.hit_count = hit_count
         self.intent = intent
-        self.effects = effects
 
 
 class PlayerType(Enum):
