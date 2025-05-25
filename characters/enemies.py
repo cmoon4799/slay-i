@@ -3,9 +3,10 @@ import random
 
 from characters.character import Character
 from events import Attack, Effect
+from round_state import RoundState
 
 
-class Intent(Enum):
+class EnemyIntent(Enum):
     ATTACK = auto()
     ATTACK_DEFEND = auto()
     DEFEND_BUFF = auto()
@@ -17,10 +18,10 @@ class EnemyType(Enum):
 
 
 class Enemy(Character):
-    move_order = []
-
-    def __init__(self, type):
+    def __init__(self, type: EnemyType, round_state: RoundState):
         self.type = type
+        self.round_state = round_state
+        self.move_order = []
 
     def get_move(self):
         raise NotImplementedError("Each enemy must define its move behavior.")
@@ -33,7 +34,7 @@ class JawWorm(Enemy):
                 name="CHOMP",
                 base_damage=11,
                 hit_count=1,
-                intent=Intent.ATTACK
+                intent=EnemyIntent.ATTACK
             )
         ]
         THRASH = [
@@ -41,7 +42,7 @@ class JawWorm(Enemy):
                 name="THRASH",
                 base_damage=7,
                 hit_count=1,
-                intent=Intent.ATTACK_DEFEND
+                intent=EnemyIntent.ATTACK_DEFEND
             ),
             Effect(
                 name="THRASH",
@@ -57,9 +58,9 @@ class JawWorm(Enemy):
         self.move_order = []
         self.damage = [
             Attack(name="CHOMP", base_damage=11,
-                   hit_count=1, intent=Intent.ATTACK),
+                   hit_count=1, intent=EnemyIntent.ATTACK),
             Attack(name="THRASH", base_damage=7,
-                   hit_count=2, intent=Intent.ATTACK_DEFEND)
+                   hit_count=2, intent=EnemyIntent.ATTACK_DEFEND)
         ]
 
     def last_move(self, move):
@@ -73,52 +74,52 @@ class JawWorm(Enemy):
         if len(self.first_move) == 0:
             self.first_move = False
             chosen = self.Moves.CHOMP
-            intent = Intent.ATTACK
+            intent = EnemyIntent.ATTACK
             dmg = self.damage[0]
 
         elif num < .25:
             if self.last_move(self.Moves.CHOMP):
                 if random.random() < 0.5625:
                     chosen = self.Moves.BELLOW
-                    intent = Intent.DEFEND_BUFF
+                    intent = EnemyIntent.DEFEND_BUFF
                     dmg = None
                 else:
                     chosen = self.Moves.THRASH
-                    intent = Intent.ATTACK_DEFEND
+                    intent = EnemyIntent.ATTACK_DEFEND
                     dmg = self.damage[1]
             else:
                 chosen = self.Moves.CHOMP
-                intent = Intent.ATTACK
+                intent = EnemyIntent.ATTACK
                 dmg = self.damage[0]
 
         elif num < .55:
             if self.last_two_moves(self.Moves.THRASH):
                 if random.random() < 0.357:
                     chosen = self.Moves.CHOMP
-                    intent = Intent.ATTACK
+                    intent = EnemyIntent.ATTACK
                     dmg = self.damage[0]
                 else:
                     chosen = self.Moves.BELLOW
-                    intent = Intent.DEFEND_BUFF
+                    intent = EnemyIntent.DEFEND_BUFF
                     dmg = None
             else:
                 chosen = self.Moves.THRASH
-                intent = Intent.ATTACK_DEFEND
+                intent = EnemyIntent.ATTACK_DEFEND
                 dmg = self.damage[1]
 
         else:
             if self.last_move(self.Moves.BELLOW):
                 if random.random() < 0.416:
                     chosen = self.Moves.CHOMP
-                    intent = Intent.ATTACK
+                    intent = EnemyIntent.ATTACK
                     dmg = self.damage[0]
                 else:
                     chosen = self.Moves.THRASH
-                    intent = Intent.ATTACK_DEFEND
+                    intent = EnemyIntent.ATTACK_DEFEND
                     dmg = self.damage[1]
             else:
                 chosen = self.Moves.BELLOW
-                intent = Intent.DEFEND_BUFF
+                intent = EnemyIntent.DEFEND_BUFF
                 dmg = None
 
         self.move_order.append(chosen)
