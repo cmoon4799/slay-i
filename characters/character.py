@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Dict
+
 """
 enemies operate similarly to players, base class can be the same
 
@@ -49,18 +49,6 @@ no stacks...
 """
 
 
-class Intent(Enum):
-    ATTACK = auto()
-    ATTACK_DEFEND = auto()
-    DEFEND_BUFF = auto()
-
-
-class Target(Enum):
-    ALL = auto()
-    SINGLE = auto()
-    NONE = auto()
-
-
 class EffectType(Enum):
     DEXTERITY = auto()
     DEXTERITY_DELTA = auto()
@@ -77,34 +65,18 @@ class EffectType(Enum):
     WEAK_MODIFIER = auto()
 
 
-class Effect:
-    def __init__(self, effect: Dict[EffectType, int], target: Target):
-        self.effect = {key: key.value() for key in EffectType}.update(effect)
-        self.target = target
-        pass
-
-
 class Character:
-    # intensity effects
-    dexterity = 0
-    dexterity_delta = 0
-    strength_down = 0
-    strength_negative = 0
-    poison = 0
-
-    # duration debuffs
-    frail = 0
-    vulnerable = 0
-    weak = 0
-
-    # duration debuff constants
-    FRAIL_MODIFIER = .25
-    VULNERABLE_MODIFIER = .5
-    WEAK_MODIFIER = .25
-
     block = 0
 
     def __init__(self):
+        self.effects = {
+            effect_type: 0 for effect_type in EffectType
+        }
+        self.effects.update({
+            EffectType.FRAIL_MODIFIER: .25,
+            EffectType.VULNERABLE_MODIFIER: .5,
+            EffectType.WEAK_MODIFIER: .25,
+        })
         pass
 
     # receive attack from opponent
@@ -114,20 +86,6 @@ class Character:
     # receive effect from opponent
     def receive_effect():
         pass
-
-
-class Attack:
-    def __init__(
-        self,
-        name,
-        base_damage,
-        hit_count,
-        intent: Intent,  # for enemy attack
-    ):
-        self.name = name
-        self.base_damage = base_damage
-        self.hit_count = hit_count
-        self.intent = intent
 
 
 class PlayerType(Enum):
@@ -146,18 +104,3 @@ class Player(Character):
         self.relics = relics
         self.deck = deck
         self.gold = gold
-
-
-class EnemyType(Enum):
-    BOSS = auto()
-    ELITE = auto()
-
-
-class Enemy(Character):
-    move_order = []
-
-    def __init__(self, type):
-        self.type = type
-
-    def get_move(self):
-        raise NotImplementedError("Each enemy must define its move behavior.")

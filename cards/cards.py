@@ -1,6 +1,8 @@
 from enum import Enum, auto
-from characters.character import Attack, Effect, Target
+from events import Target
 from typing import List
+
+from events import Attack, Effect
 
 """
 mechanics to consider...

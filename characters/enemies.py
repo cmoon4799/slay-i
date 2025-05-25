@@ -1,12 +1,29 @@
-from character import Enemy, Attack, Effect
 from enum import Enum, auto
 import random
+
+from characters.character import Character
+from events import Attack, Effect
 
 
 class Intent(Enum):
     ATTACK = auto()
     ATTACK_DEFEND = auto()
     DEFEND_BUFF = auto()
+
+
+class EnemyType(Enum):
+    BOSS = auto()
+    ELITE = auto()
+
+
+class Enemy(Character):
+    move_order = []
+
+    def __init__(self, type):
+        self.type = type
+
+    def get_move(self):
+        raise NotImplementedError("Each enemy must define its move behavior.")
 
 
 class JawWorm(Enemy):
@@ -27,13 +44,16 @@ class JawWorm(Enemy):
                 intent=Intent.ATTACK_DEFEND
             ),
             Effect(
-                name="",
-                base_damage=)
+                name="THRASH",
+                effect={
+
+                }
+            )
         ]
         BELLOW = auto()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, type):
+        super().__init__(type)
         self.move_order = []
         self.damage = [
             Attack(name="CHOMP", base_damage=11,

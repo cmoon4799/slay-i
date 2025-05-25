@@ -1,7 +1,10 @@
 from enum import Enum, auto
-from cards import Card, CardType, CardTarget
+from cards.cards import Card, CardType
 from collections import defaultdict, deque
-from typing import Callable
+from typing import Callable, List
+from events import Event, EventType
+from characters.players import Player
+from characters.enemies import Enemy
 
 """
 INPUT:
@@ -20,8 +23,8 @@ piles...
 order...
     round start
     turn start
-    shuffle cards
     draw cards
+        shuffle discard pile into draw pile
 
     display...
         enemy intent
@@ -58,13 +61,26 @@ event queue
 
 
 class RoundState:
-    event_queue = deque()
-    card_draw = 5
-    round = 1
 
-    def __init__(self, player, enemies):
+    def __init__(self, player: Player, enemies: List[Enemy]):
+        self.event_queue = deque([
+            Event(EventType.ROUND_START),
+            Event(EventType.TURN_START),
+        ])  # processed left to right
+        self.event_callbacks = default_event_callbacks
+        self.card_draw = 5
+        self.round = 1
         self.player = player
         self.enemies = enemies
+
+    def process_event_queue(self):
+        while self.event_queue:
+            event = self.event_queue.popleft()
+            match event.event_type:
+                case EventType.ROUND_START:
+                    pass
+                case EventType.TURN_START:
+                    pass
 
     def play_card(self, card):
         if card.type == CardType.ATTACK:
@@ -94,25 +110,13 @@ class RoundState:
         pass
 
 
-class EventTypes(Enum):
-    PLAYER_DAMAGE = auto()
-    ENEMY_DAMAGE = auto()
-    DRAW_CARD = auto()
-    ROUND_START = auto()
-    ROUND_END = auto()
-    TURN_START = auto()
-    TURN_END = auto()
+def draw_card(round_state: RoundState):
+    pass
 
 
-class EventCallbacks:
-    callbacks = {event: [] for event in EventTypes}
+default_event_callbacks = {
+    EventType.TURN_START: [draw_card],
+}
 
-    def __init__(self):
-        self.callbacks[EventTypes.TURN_START].append()
-
-    def register_callback(event_type, callback: Callable[[RoundState], None]):
-        pass
-
-    # TURN_START default callbacks
-    def _remove_player_armor(round_state):
-        round_state.player.block = 0
+round_state = RoundState(None, [])
+print(round_state.event_callbacks)
