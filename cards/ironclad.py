@@ -102,4 +102,4 @@ class Whirlwind(Card):
                 name=self.name, damage=self.damage, source=current_position, target=i
             )
             for i in range(len(round_state.enemies))
-        ]
+        ] * round_state.player.
