@@ -47,13 +47,11 @@ class Damage:
         self,
         name,
         damage,
-        hit_count,
-        source,
+        source: int,
         target: List[int],
     ):
         self.name = name
         self.damage = damage
-        self.hit_count = hit_count
         self.source = source
         self.target = target
 
@@ -64,7 +62,7 @@ class Block:
         name,
         block,
         block_count,
-        source,
+        source: int,
         target: List[int],
     ):
         self.name = name
@@ -79,7 +77,7 @@ class Condition:
         self,
         name,
         condition: Dict[ConditionType, int],
-        source,
+        source: int,
         target: List[int],
     ):
         self.name = name
@@ -94,8 +92,3 @@ class Condition:
         self.condition.update(condition)
         self.source = source
         self.target = target
-
-
-condition = Condition("blach", {}, 1, [1])
-
-print(condition, type(condition))

@@ -3,31 +3,6 @@ from actions import Damage, Source, Condition, Block
 from characters.character import ConditionType
 
 
-class Strike(Card):
-    def __init__(self):
-        self.name = "STRIKE"
-        self.damage = 6
-
-        super().__init__(
-            name=self.name,
-            cost=1,
-            card_type=CardType.ATTACK,
-            card_rarity=CardRarity.BASIC,
-            card_class=CardClass.IRONCLAD,
-        )
-
-    def play_card(self, current_position, target, round_state):
-        return [
-            Damage(
-                name=self.name,
-                damage=self.damage,
-                hit_count=1,
-                source=Source.CARD,
-                target=target,
-            ),
-        ]
-
-
 class Defend(Card):
     def __init__(self):
         self.name = "DEFEND"
@@ -48,8 +23,32 @@ class Defend(Card):
                 name=self.name,
                 block=self.block,
                 block_count=self.block_count,
-                source=Source.CARD,
-                target=[current_position],  # self
+                source=current_position,
+                target=[current_position],
+            ),
+        ]
+
+
+class Strike(Card):
+    def __init__(self):
+        self.name = "STRIKE"
+        self.damage = 6
+
+        super().__init__(
+            name=self.name,
+            cost=1,
+            card_type=CardType.ATTACK,
+            card_rarity=CardRarity.BASIC,
+            card_class=CardClass.IRONCLAD,
+        )
+
+    def play_card(self, current_position, target, round_state):
+        return [
+            Damage(
+                name=self.name,
+                damage=self.damage,
+                source=current_position,
+                target=target,
             ),
         ]
 
@@ -74,12 +73,33 @@ class Bash(Card):
             Damage(
                 name=self.name,
                 damage=self.damage,
-                hit_count=1,
-                source=Source.CARD,
+                source=current_position,
                 target=target,
             ),
             Condition(
                 name=self.name,
                 condition=self.condition,
             ),
+        ]
+
+
+class Whirlwind(Card):
+    def __init__(self):
+        self.name = "WHIRLWIND"
+        self.damage = 5
+        super().__init__(
+            name=self.name,
+            cost=0,
+            card_type=CardType.ATTACK,
+            card_rarity=CardRarity.UNCOMMON,
+            card_class=CardClass.IRONCLAD,
+            x_cost=True,
+        )
+
+    def play_card(self, current_position, target, round_state):
+        return [
+            Damage(
+                name=self.name, damage=self.damage, source=current_position, target=i
+            )
+            for i in range(len(round_state.enemies))
         ]

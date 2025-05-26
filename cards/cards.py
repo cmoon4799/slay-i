@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from round_state import RoundState
 
 """
 mechanics to consider...
@@ -13,6 +14,10 @@ searing blow - can be upgraded any number of times
 sever soul - exhaust all non-attack cards in your hand
 feed - if fatal, raise your max hp by 3
 forethought - put a card from your hand to the bottom of your draw pile, costs 0 until player
+
+NOTES:
+* AOE damage is stil considered sequential in the action queue, i.e. if there are 3 enemies, 3 Damage actions will be enqueued. Important if each enemy has thorns, so each tick of damage must be separate.
+* 
 """
 
 
@@ -48,12 +53,14 @@ class Card:
         card_type: CardType,
         card_rarity: CardRarity,
         card_class: CardClass,
+        x_cost=False,
     ):
         self.name = name
         self.cost = cost
         self.type = card_type
         self.card_rarity = card_rarity
         self.card_class = card_class
+        self.x_cost = x_cost
 
         self.upgraded = False
         self.description = ""
@@ -61,7 +68,7 @@ class Card:
         self.retain = False
         self.ethereal = False
 
-    def play_card(self, current_position, target, round_state):
+    def play_card(self, current_position, target, round_state: RoundState):
         """Execute the effect of the card."""
         raise NotImplementedError("Each card must define its play behavior.")
 
@@ -76,9 +83,9 @@ class Card:
             self.__class__()
         )  # Assuming each card can be initialized without args or has its own override
 
-    def is_playable(self, player):
+    def is_playable(self, round_state: RoundState):
         """Check if the card can be played (enough energy, etc)."""
-        return player.energy >= self.cost
+        return round_state.player.energy >= self.cost
 
     def __str__(self):
         return f"{self.name} ({self.type.name}) - Cost: {self.cost}"

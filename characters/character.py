@@ -91,34 +91,16 @@ class Character:
     # Damage, Block, Condition
     def receive_targeted_action(self, action):
         if isinstance(action, Damage):
-            pass
+            self.receive_damage(action)
         elif isinstance(action, Block):
-            pass
+            self.receive_block(action)
         elif isinstance(action, Condition):
-            pass
+            self.receive_condition(action)
 
     # receive attack from opponent
-    def receive_damage():
+    def receive_damage(self, damage):
         pass
 
     # receive effect from opponent
     def receive_condition():
         pass
-
-
-class PlayerType(Enum):
-    IRONCLAD = auto()
-
-
-class Player(Character):
-    potions = []
-    relics = []
-    deck = []
-    gold = 0
-
-    def __init__(self, type, potions, relics, deck, gold):
-        self.type = type
-        self.potions = potions
-        self.relics = relics
-        self.deck = deck
-        self.gold = gold
