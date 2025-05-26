@@ -1,8 +1,4 @@
 from enum import Enum, auto
-from events import Target
-from typing import List
-
-from events import Attack, Effect
 
 """
 mechanics to consider...
@@ -36,25 +32,28 @@ class CardRarity(Enum):
     SPECIAL = auto()
 
 
+class CardClass(Enum):
+    IRONCLAD = auto()
+    SILENT = auto()
+    DEFECT = auto()
+    WATCHER = auto()
+    COLORLESS = auto()
+
+
 class Card:
     def __init__(
         self,
         name,
         cost,
         card_type: CardType,
-        rarity: CardRarity,
-        target: Target,
-        attacks: List[Attack],
-        effects: List[Effect],
+        card_rarity: CardRarity,
+        card_class: CardClass,
     ):
         self.name = name
         self.cost = cost
         self.type = card_type
-        self.rarity = rarity
-        self.target = target
-
-        self.attacks = attacks
-        self.effects = effects
+        self.card_rarity = card_rarity
+        self.card_class = card_class
 
         self.upgraded = False
         self.description = ""
@@ -62,7 +61,7 @@ class Card:
         self.retain = False
         self.ethereal = False
 
-    def play(self, character, round_state, target):
+    def play_card(self, current_position, target, round_state):
         """Execute the effect of the card."""
         raise NotImplementedError("Each card must define its play behavior.")
 
@@ -73,7 +72,9 @@ class Card:
 
     def make_copy(self):
         """Return a new instance of the same card (e.g., for cloning)."""
-        return self.__class__()  # Assuming each card can be initialized without args or has its own override
+        return (
+            self.__class__()
+        )  # Assuming each card can be initialized without args or has its own override
 
     def is_playable(self, player):
         """Check if the card can be played (enough energy, etc)."""

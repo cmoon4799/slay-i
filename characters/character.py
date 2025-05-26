@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from actions import Damage, Block, Condition
 
 """
 enemies operate similarly to players, base class can be the same
@@ -44,12 +45,14 @@ no stacks...
         bullet time, battle trance
     entangled: no attack
         from red slaver
-        
+
+NOTES
+* Weak and Vulnerable are rounded down
 
 """
 
 
-class EffectType(Enum):
+class ConditionType(Enum):
     DEXTERITY = auto()
     DEXTERITY_DELTA = auto()
     STRENGTH = auto()
@@ -58,7 +61,7 @@ class EffectType(Enum):
     POISON = auto()
     FRAIL = auto()
     VULNERABLE = auto()
-    WEAK = auto()
+    WEAK = auto()  # rounded down
 
     FRAIL_MODIFIER = auto()
     VULNERABLE_MODIFIER = auto()
@@ -66,25 +69,40 @@ class EffectType(Enum):
 
 
 class Character:
-    block = 0
-
     def __init__(self):
-        self.effects = {
-            effect_type: 0 for effect_type in EffectType
+        self.block = 0
+        self._default_conditions = {
+            condition_type: 0 for condition_type in ConditionType
         }
-        self.effects.update({
-            EffectType.FRAIL_MODIFIER: .25,
-            EffectType.VULNERABLE_MODIFIER: .5,
-            EffectType.WEAK_MODIFIER: .25,
-        })
-        pass
+        self._default_conditions.update(
+            {
+                ConditionType.FRAIL_MODIFIER: 0.25,
+                ConditionType.VULNERABLE_MODIFIER: 0.5,
+                ConditionType.WEAK_MODIFIER: 0.25,
+            }
+        )
+        self.conditions = self._default_conditions.copy()
+
+    # reset block and condition
+    def reset(self):
+        self.block = 0
+        self.conditions = self._default_conditions.copy()
+
+    # Damage, Block, Condition
+    def receive_targeted_action(self, action):
+        if isinstance(action, Damage):
+            pass
+        elif isinstance(action, Block):
+            pass
+        elif isinstance(action, Condition):
+            pass
 
     # receive attack from opponent
-    def receive_attack():
+    def receive_damage():
         pass
 
     # receive effect from opponent
-    def receive_effect():
+    def receive_condition():
         pass
 
 

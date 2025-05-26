@@ -2,7 +2,7 @@ from enum import Enum, auto
 import random
 
 from characters.character import Character
-from events import Attack, Effect
+from actions import Damage, Block
 from round_state import RoundState
 
 
@@ -30,26 +30,25 @@ class Enemy(Character):
 class JawWorm(Enemy):
     class Moves(Enum):
         CHOMP = [
-            Attack(
+            Damage(
                 name="CHOMP",
                 base_damage=11,
                 hit_count=1,
-                intent=EnemyIntent.ATTACK
+                intent=EnemyIntent.ATTACK,
             )
         ]
         THRASH = [
-            Attack(
+            Damage(
                 name="THRASH",
                 base_damage=7,
                 hit_count=1,
-                intent=EnemyIntent.ATTACK_DEFEND
+                intent=EnemyIntent.ATTACK_DEFEND,
             ),
-            Effect(
-                name="THRASH",
-                effect={
-
-                }
-            )
+            Block(
+                target=[
+                    self.position,
+                ]
+            ),
         ]
         BELLOW = auto()
 
@@ -57,17 +56,27 @@ class JawWorm(Enemy):
         super().__init__(type)
         self.move_order = []
         self.damage = [
-            Attack(name="CHOMP", base_damage=11,
-                   hit_count=1, intent=EnemyIntent.ATTACK),
-            Attack(name="THRASH", base_damage=7,
-                   hit_count=2, intent=EnemyIntent.ATTACK_DEFEND)
+            Damage(
+                name="CHOMP",
+                base_damage=11,
+                hit_count=1,
+                intent=EnemyIntent.ATTACK,
+            ),
+            Damage(
+                name="THRASH",
+                base_damage=7,
+                hit_count=2,
+                intent=EnemyIntent.ATTACK_DEFEND,
+            ),
         ]
 
     def last_move(self, move):
         return self.move_order and self.move_order[-1] == move
 
     def last_two_moves(self, move):
-        return len(self.move_order) >= 2 and all(m == move for m in self.move_order[-2:])
+        return len(self.move_order) >= 2 and all(
+            m == move for m in self.move_order[-2:]
+        )
 
     def get_move(self):
         num = random.random()
@@ -77,7 +86,7 @@ class JawWorm(Enemy):
             intent = EnemyIntent.ATTACK
             dmg = self.damage[0]
 
-        elif num < .25:
+        elif num < 0.25:
             if self.last_move(self.Moves.CHOMP):
                 if random.random() < 0.5625:
                     chosen = self.Moves.BELLOW
@@ -92,7 +101,7 @@ class JawWorm(Enemy):
                 intent = EnemyIntent.ATTACK
                 dmg = self.damage[0]
 
-        elif num < .55:
+        elif num < 0.55:
             if self.last_two_moves(self.Moves.THRASH):
                 if random.random() < 0.357:
                     chosen = self.Moves.CHOMP
@@ -123,9 +132,9 @@ class JawWorm(Enemy):
                 dmg = None
 
         self.move_order.append(chosen)
-        return Attack(
+        return Damage(
             name=chosen.name,
             base_damage=(dmg.base_damage if dmg else 0),
             hit_count=(dmg.hit_count if dmg else 0),
-            intent=intent
+            intent=intent,
         )

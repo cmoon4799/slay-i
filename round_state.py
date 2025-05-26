@@ -2,7 +2,7 @@ from enum import Enum, auto
 from cards.cards import Card, CardType
 from collections import defaultdict, deque
 from typing import Callable, List
-from events import Event, EventType
+from actions import Event, EventType
 from characters.players import Player
 from characters.enemies import Enemy
 
@@ -41,7 +41,7 @@ order...
     
     end round
     
-event queue
+action queue
     [
         Attack(
             name = "Bash",
@@ -61,21 +61,27 @@ event queue
 
 
 class RoundState:
+    """Represents the round state of a battle.
+
+    action_queue: A double ended queue of a sequence of actions to process. Some actions are considered Events which can trigger Event callbacks. For example, the relic Orichalcum may register a callback on EventType.TURN_END to add block to the player.
+    """
 
     def __init__(self, player: Player, enemies: List[Enemy]):
-        self.event_queue = deque([
-            Event(EventType.ROUND_START),
-            Event(EventType.TURN_START),
-        ])  # processed left to right
+        self.action_queue = deque(
+            [
+                Event(EventType.ROUND_START),
+                Event(EventType.TURN_START),
+            ]
+        )  # processed left to right
         self.event_callbacks = default_event_callbacks
         self.card_draw = 5
         self.round = 1
         self.player = player
         self.enemies = enemies
 
-    def process_event_queue(self):
-        while self.event_queue:
-            event = self.event_queue.popleft()
+    def process_action_queue(self):
+        while self.action_queue:
+            event = self.action_queue.popleft()
             match event.event_type:
                 case EventType.ROUND_START:
                     pass
