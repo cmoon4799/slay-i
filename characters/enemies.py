@@ -1,20 +1,35 @@
 from enum import Enum, auto
 import random
 
+from typing import List
 from characters.character import Character
-from actions import Damage, Block
+from actions import Damage, Action, Block, Condition
 from round_state import RoundState
 
 
 class EnemyIntent(Enum):
     ATTACK = auto()
-    ATTACK_DEFEND = auto()
-    DEFEND_BUFF = auto()
+    DEFEND = auto()
+    BUFF = auto()
+    DEBUFF = auto()
+    ESCAPE = auto()
+    SLEEPING = auto()
+    STUNNED = auto()
+    UNKNOWN = auto()
 
 
 class EnemyType(Enum):
     BOSS = auto()
     ELITE = auto()
+    HALLWAY = auto()
+
+
+class EnemyMove:
+    def __init__(self, name, intentions: List[EnemyIntent], damage, hit_count):
+        self.name = name
+        self.intentions = intentions
+        self.damage = damage
+        self.hit_count = hit_count
 
 
 class Enemy(Character):
@@ -29,46 +44,38 @@ class Enemy(Character):
 
 class JawWorm(Enemy):
     class Moves(Enum):
-        CHOMP = [
-            Damage(
-                name="CHOMP",
-                base_damage=11,
-                hit_count=1,
-                intent=EnemyIntent.ATTACK,
-            )
-        ]
-        THRASH = [
-            Damage(
-                name="THRASH",
-                base_damage=7,
-                hit_count=1,
-                intent=EnemyIntent.ATTACK_DEFEND,
-            ),
-            Block(
-                target=[
-                    self.position,
-                ]
-            ),
-        ]
-        BELLOW = auto()
+        CHOMP = auto()
+        THRASH = auto()
 
     def __init__(self, type):
         super().__init__(type)
         self.move_order = []
-        self.damage = [
-            Damage(
+        self.moves = {
+            self.Moves.CHOMP: EnemyMove(
                 name="CHOMP",
-                base_damage=11,
+                intentions=[EnemyIntent.ATTACK],
+                damage=11,
                 hit_count=1,
-                intent=EnemyIntent.ATTACK,
             ),
-            Damage(
+            JawWorm.Moves.THRASH: EnemyMove(
                 name="THRASH",
-                base_damage=7,
-                hit_count=2,
-                intent=EnemyIntent.ATTACK_DEFEND,
-            ),
-        ]
+                intent=[EnemyIntent.ATTACK, EnemyIntent.DEFEND],
+                actions=[
+                    Damage(
+                        damage=7,
+                        source=self,
+
+                    ),
+                    Block(
+                        target=[
+                            self.position,
+                        ]
+                    ),
+                ]
+            )
+        }
+
+    def _chomp(self):
 
     def last_move(self, move):
         return self.move_order and self.move_order[-1] == move

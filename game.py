@@ -30,3 +30,6 @@ player = Player(
     [],  # deck
     0,  # gold
 )
+
+# starter relic
+# filter relics_by_rarity based on player class

@@ -1,9 +1,63 @@
+from enum import Enum, auto
+from actions import ActionType
+from typing import Dict, List, Callable
 
 
-class Relics:
-    pass
+class RelicRarity(Enum):
+    STARTER = auto()
+    COMMON = auto()
+    UNCOMMON = auto()
+    RARE = auto()
+    BOSS = auto()
+    EVENT = auto()
+    SHOP = auto()
+    SPECIAL = auto()
 
 
+class RelicRestriction(Enum):
+    IRONCLAD = auto()
+    SILENT = auto()
+    DEFECT = auto()
+    WATCHER = auto()
+    ALL = auto()
+
+
+class Relic:
+    def __init__(
+        self,
+        rarity: RelicRarity,
+        restriction: RelicRestriction,
+        description: str,
+        event_callbacks: Dict[ActionType, List[Callable]] = {},
+    ):
+        self.rarity = rarity
+        self.restriction = restriction
+        self.description = description
+        self.event_callbacks = event_callbacks
+
+
+class FrozenEye(Relic):
+    def __init__(self):
+        super().__init__(
+            rarity=RelicRarity.SHOP,
+            restriction=RelicRestriction.ALL,
+            description="When viewing your Draw Pile, the cards are now shown in order."
+        )
+
+
+relics_by_rarity: Dict[RelicRarity, List[Relic]] = {
+    RelicRarity.COMMON: [],
+    RelicRarity.UNCOMMON: [],
+    RelicRarity.RARE: [],
+    RelicRarity.BOSS: [],
+    RelicRarity.STARTER: [],
+    RelicRarity.EVENT: [],
+    RelicRarity.SHOP: [FrozenEye],
+    RelicRarity.SPECIAL: [],
+}
+
+
+# relics can change default behavior or add callbacks
 """
 
 **COMMON RELICS**

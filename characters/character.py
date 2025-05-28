@@ -1,5 +1,7 @@
 from enum import Enum, auto
 from actions import Damage, Block, Condition
+from __future__ import annotations
+from math import floor
 
 """
 enemies operate similarly to players, base class can be the same
@@ -16,7 +18,7 @@ buffs...
     artifact
         artifact order? e.g. if an attack applies both weak and frail
         which one gets countered first?
-    
+
 
 intensity debuffs...
     dexterity down: reduce dex by N every turn
@@ -48,21 +50,33 @@ no stacks...
 
 NOTES
 * Weak and Vulnerable are rounded down
+* Strength is added to calculation first before other modifiers (Vulnerable, Weak, Wrath, Divinity)
 
 """
 
 
 class ConditionType(Enum):
+    # buffs
+    ARTIFACT = auto()
+    BARRICADE = auto()
+    BUFFER = auto()
+    METALLICIZE = auto()
+    THORNS = auto()
+    PLATED_ARMOR = auto()
+
     DEXTERITY = auto()
     DEXTERITY_DELTA = auto()
     STRENGTH = auto()
-    STRENGTH_DELTA = auto()
+    STRENGTH_DELTA = auto()  # Ritual, Demon Form, ...
 
     POISON = auto()
+
     FRAIL = auto()
     VULNERABLE = auto()
     WEAK = auto()  # rounded down
 
+
+class ConditionModifierType(Enum):
     FRAIL_MODIFIER = auto()
     VULNERABLE_MODIFIER = auto()
     WEAK_MODIFIER = auto()
@@ -74,19 +88,19 @@ class Character:
         self._default_conditions = {
             condition_type: 0 for condition_type in ConditionType
         }
-        self._default_conditions.update(
-            {
-                ConditionType.FRAIL_MODIFIER: 0.25,
-                ConditionType.VULNERABLE_MODIFIER: 0.5,
-                ConditionType.WEAK_MODIFIER: 0.25,
-            }
-        )
+        self._default_condition_modifiers = {
+            ConditionModifierType.FRAIL_MODIFIER: 0.25,
+            ConditionModifierType.VULNERABLE_MODIFIER: 0.5,
+            ConditionModifierType.WEAK_MODIFIER: 0.25,
+        }
         self.conditions = self._default_conditions.copy()
+        self.condition_modifiers = self._default_condition_modifiers.copy()
 
-    # reset block and condition
+    # reset block and condition at round start or round end
     def reset(self):
         self.block = 0
         self.conditions = self._default_conditions.copy()
+        self.condition_modifiers = self._default_condition_modifiers.copy()
 
     # Damage, Block, Condition
     def receive_targeted_action(self, action):
@@ -104,3 +118,17 @@ class Character:
     # receive effect from opponent
     def receive_condition():
         pass
+
+    def calculate_damage(self, target: Character, base_damage: int) -> int:
+        strength = self.conditions[ConditionType.STRENGTH]
+        damage = base_damage + strength
+
+        if ConditionType.WEAK in self.conditions:
+            damage = floor(
+                damage * (1 - self.condition_modifiers[ConditionModifierType.WEAK_MODIFIER]))
+
+        if target.conditions[ConditionType.VULNERABLE] > 1:
+            damage = floor(
+                damage * (1 + target.condition_modifiers[ConditionModifierType.VULNERABLE_MODIFIER]))
+
+        return max(0, damage)

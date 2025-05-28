@@ -49,18 +49,18 @@ class Card:
     def __init__(
         self,
         name,
-        cost,
+        cost,  # -1 if cost is X cost
         card_type: CardType,
         card_rarity: CardRarity,
         card_class: CardClass,
-        x_cost=False,
+        targeted: bool,  # used to prompt the user to select target
     ):
         self.name = name
         self.cost = cost
         self.type = card_type
         self.card_rarity = card_rarity
         self.card_class = card_class
-        self.x_cost = x_cost
+        self.targeted = targeted
 
         self.upgraded = False
         self.description = ""
@@ -68,8 +68,11 @@ class Card:
         self.retain = False
         self.ethereal = False
 
-    def play_card(self, current_position, target, round_state: RoundState):
-        """Execute the effect of the card."""
+    def play_card(self, round_state):
+        target = round_state.target_enemy() if self.targeted else None
+        return self._play_card(target, round_state)
+
+    def _play_card(self, target, round_state):
         raise NotImplementedError("Each card must define its play behavior.")
 
     def upgrade(self):

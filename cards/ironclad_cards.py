@@ -1,6 +1,14 @@
 from cards.cards import Card, CardType, CardRarity, CardClass
-from actions import Damage, Source, Condition, Block
+from actions import Damage, Source, Condition, Block, CharacterTarget
 from characters.character import ConditionType
+
+
+"""
+NOTE
+* do we need to specify where the source of damage or block comes from?
+    probably? 
+
+"""
 
 
 class Defend(Card):
@@ -15,17 +23,15 @@ class Defend(Card):
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
             card_class=CardClass.IRONCLAD,
+            targeted=False,
         )
 
-    def play_card(self, current_position, target, round_state):
+    def _play_card(self, target, round_state):
         return [
             Block(
-                name=self.name,
                 block=self.block,
-                block_count=self.block_count,
-                source=current_position,
-                target=[current_position],
-            ),
+                source=round_state.player,
+            )
         ]
 
 
@@ -40,14 +46,14 @@ class Strike(Card):
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
             card_class=CardClass.IRONCLAD,
+            targeted=True,
         )
 
-    def play_card(self, current_position, target, round_state):
+    def _play_card(self, target, round_state):
         return [
             Damage(
-                name=self.name,
                 damage=self.damage,
-                source=current_position,
+                source=round_state.player,
                 target=target,
             ),
         ]
@@ -68,12 +74,12 @@ class Bash(Card):
             card_class=CardClass.IRONCLAD,
         )
 
-    def play_card(self, current_position, target, round_state):
+    def play_card(self, source, target, energy):
         return [
             Damage(
                 name=self.name,
                 damage=self.damage,
-                source=current_position,
+                source=source,
                 target=target,
             ),
             Condition(
@@ -96,10 +102,10 @@ class Whirlwind(Card):
             x_cost=True,
         )
 
-    def play_card(self, current_position, target, round_state):
+    def play_card(self, source, target, round_state, energy):
         return [
             Damage(
-                name=self.name, damage=self.damage, source=current_position, target=i
+                name=self.name, damage=self.damage, source=source, target=i,
             )
-            for i in range(len(round_state.enemies))
-        ] * round_state.player.
+            for i in range(1, len(round_state.enemies) + 1)
+        ] * round_state.player.energy
