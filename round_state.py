@@ -172,10 +172,16 @@ class RoundState:
             self._attempt_draw()
 
         # get enemy move
-        pass
+        for enemy in round_state.enemies:
+            enemy.get_move()
 
         # display choices
         self._display_choices()
+    
+    # display the state of the round
+    # gold, potions, floor level, etc
+    def _display(self):
+        pass
 
     def _display_choices(self):
         pass

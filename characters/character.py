@@ -125,10 +125,19 @@ class Character:
 
         if ConditionType.WEAK in self.conditions:
             damage = floor(
-                damage * (1 - self.condition_modifiers[ConditionModifierType.WEAK_MODIFIER]))
+                damage
+                * (1 - self.condition_modifiers[ConditionModifierType.WEAK_MODIFIER])
+            )
 
         if target.conditions[ConditionType.VULNERABLE] > 1:
             damage = floor(
-                damage * (1 + target.condition_modifiers[ConditionModifierType.VULNERABLE_MODIFIER]))
+                damage
+                * (
+                    1
+                    + target.condition_modifiers[
+                        ConditionModifierType.VULNERABLE_MODIFIER
+                    ]
+                )
+            )
 
         return max(0, damage)

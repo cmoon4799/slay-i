@@ -2,7 +2,7 @@ from enum import Enum, auto
 import random
 
 from typing import List
-from characters.character import Character
+from characters.character import Character, ConditionType
 from actions import Damage, Action, Block, Condition
 from round_state import RoundState
 
@@ -25,123 +25,128 @@ class EnemyType(Enum):
 
 
 class EnemyMove:
-    def __init__(self, name, intentions: List[EnemyIntent], damage, hit_count):
+    def __init__(
+        self, name, intentions: List[EnemyIntent], damage, hit_count, play_move
+    ):
         self.name = name
         self.intentions = intentions
         self.damage = damage
         self.hit_count = hit_count
+        self.play_move = play_move
 
 
 class Enemy(Character):
     def __init__(self, type: EnemyType, round_state: RoundState):
         self.type = type
         self.round_state = round_state
+        self.intentions = None
+        self.play_move = None
         self.move_order = []
 
     def get_move(self):
         raise NotImplementedError("Each enemy must define its move behavior.")
+
+    def _set_move(self, move: EnemyMove):
+        self.intentions = move.intentions
+        self.play_move = move.play_move
+
+    def _last_move(self, move, n):
+        return len(self.move_roder) >= n and all(
+            m == move for m in self.move_order[-n:]
+        )
 
 
 class JawWorm(Enemy):
     class Moves(Enum):
         CHOMP = auto()
         THRASH = auto()
+        BELLOW = auto()
 
-    def __init__(self, type):
-        super().__init__(type)
-        self.move_order = []
-        self.moves = {
-            self.Moves.CHOMP: EnemyMove(
-                name="CHOMP",
-                intentions=[EnemyIntent.ATTACK],
-                damage=11,
-                hit_count=1,
-            ),
-            JawWorm.Moves.THRASH: EnemyMove(
-                name="THRASH",
-                intent=[EnemyIntent.ATTACK, EnemyIntent.DEFEND],
-                actions=[
-                    Damage(
-                        damage=7,
-                        source=self,
-
-                    ),
-                    Block(
-                        target=[
-                            self.position,
-                        ]
-                    ),
-                ]
-            )
-        }
-
-    def _chomp(self):
-
-    def last_move(self, move):
-        return self.move_order and self.move_order[-1] == move
-
-    def last_two_moves(self, move):
-        return len(self.move_order) >= 2 and all(
-            m == move for m in self.move_order[-2:]
+    def __init__(self, type, round_state):
+        super().__init__(type, round_state)
+        self.Moves.CHOMP = EnemyMove(
+            name="CHOMP",
+            intentions=[EnemyIntent.ATTACK],
+            damage=11,
+            hit_count=1,
+            play_move=self._chomp,
         )
+        self.Moves.THRASH = EnemyMove(
+            name="THRASH",
+            intentions=[EnemyIntent.ATTACK, EnemyIntent.DEFEND],
+            damage=7,
+            hit_count=1,
+            play_move=self._thrash,
+        )
+        self.Moves.BELLOW = EnemyMove(
+            name="BELLOW",
+            intentions=[EnemyIntent.BUFF],
+            damage=0,
+            hit_count=0,
+            play_move=self._bellow,
+        )
+
+    def _chomp(self, round_state):
+        return [
+            Damage(
+                damage=11,
+                source=self,
+                target=round_state.player,
+            )
+        ]
+
+    def _thrash(self, round_state):
+        return [
+            Damage(
+                damage=7,
+                source=self,
+                target=round_state.player,
+            ),
+            Block(
+                block=5,
+                source=self,
+            ),
+        ]
+
+    def _bellow(self, round_state):
+        return [
+            Condition(
+                condition={
+                    ConditionType.STRENGTH: 3,
+                },
+                source=self,
+                target=self,
+            )
+        ]
 
     def get_move(self):
         num = random.random()
         if len(self.first_move) == 0:
-            self.first_move = False
-            chosen = self.Moves.CHOMP
-            intent = EnemyIntent.ATTACK
-            dmg = self.damage[0]
+            self._set_move(self.Moves.CHOMP)
 
         elif num < 0.25:
-            if self.last_move(self.Moves.CHOMP):
+            if self._last_move(self.Moves.CHOMP, 1):
                 if random.random() < 0.5625:
-                    chosen = self.Moves.BELLOW
-                    intent = EnemyIntent.DEFEND_BUFF
-                    dmg = None
+                    self._set_move(self.Moves.BELLOW)
                 else:
-                    chosen = self.Moves.THRASH
-                    intent = EnemyIntent.ATTACK_DEFEND
-                    dmg = self.damage[1]
+                    self._set_move(self.Moves.THRASH)
             else:
-                chosen = self.Moves.CHOMP
-                intent = EnemyIntent.ATTACK
-                dmg = self.damage[0]
+                self._set_move(self.Moves.CHOMP)
 
         elif num < 0.55:
-            if self.last_two_moves(self.Moves.THRASH):
+            if self._last_move(self.Moves.THRASH, 2):
                 if random.random() < 0.357:
-                    chosen = self.Moves.CHOMP
-                    intent = EnemyIntent.ATTACK
-                    dmg = self.damage[0]
+                    self._set_move(self.Moves.CHOMP)
                 else:
-                    chosen = self.Moves.BELLOW
-                    intent = EnemyIntent.DEFEND_BUFF
-                    dmg = None
+                    self._set_move(self.Moves.BELLOW)
             else:
-                chosen = self.Moves.THRASH
-                intent = EnemyIntent.ATTACK_DEFEND
-                dmg = self.damage[1]
+                self._set_move(self.Moves.THRASH)
 
         else:
-            if self.last_move(self.Moves.BELLOW):
+            if self._last_move(self.Moves.BELLOW, 1):
                 if random.random() < 0.416:
-                    chosen = self.Moves.CHOMP
-                    intent = EnemyIntent.ATTACK
-                    dmg = self.damage[0]
+                    self._set_move(self.Moves.CHOMP)
                 else:
-                    chosen = self.Moves.THRASH
-                    intent = EnemyIntent.ATTACK_DEFEND
-                    dmg = self.damage[1]
+                    self._set_move(self.Moves.THRASH)
             else:
-                chosen = self.Moves.BELLOW
-                intent = EnemyIntent.DEFEND_BUFF
-                dmg = None
-
-        self.move_order.append(chosen)
-        return Damage(
-            name=chosen.name,
-            base_damage=(dmg.base_damage if dmg else 0),
-            hit_count=(dmg.hit_count if dmg else 0),
-            intent=intent,
-        )
+                self._set_move(self.Moves.BELLOW)

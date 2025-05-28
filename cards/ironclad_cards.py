@@ -14,7 +14,6 @@ NOTE
 class Defend(Card):
     def __init__(self):
         self.name = "DEFEND"
-        self.block = 5
         self.block_count = 1
 
         super().__init__(
@@ -29,7 +28,7 @@ class Defend(Card):
     def _play_card(self, target, round_state):
         return [
             Block(
-                block=self.block,
+                block=5,
                 source=round_state.player,
             )
         ]
@@ -38,7 +37,6 @@ class Defend(Card):
 class Strike(Card):
     def __init__(self):
         self.name = "STRIKE"
-        self.damage = 6
 
         super().__init__(
             name=self.name,
@@ -52,7 +50,7 @@ class Strike(Card):
     def _play_card(self, target, round_state):
         return [
             Damage(
-                damage=self.damage,
+                damage=6,
                 source=round_state.player,
                 target=target,
             ),
@@ -62,10 +60,6 @@ class Strike(Card):
 class Bash(Card):
     def __init__(self):
         self.name = "BASH"
-        self.damage = 8
-        self.condition = {
-            ConditionType.VULNERABLE: 2,
-        }
         super().__init__(
             name=self.name,
             cost=2,
@@ -74,17 +68,18 @@ class Bash(Card):
             card_class=CardClass.IRONCLAD,
         )
 
-    def play_card(self, source, target, energy):
+    def _play_card(self, target, round_state):
         return [
             Damage(
-                name=self.name,
-                damage=self.damage,
-                source=source,
+                damage=8,
+                source=round_state.player,
                 target=target,
             ),
             Condition(
-                name=self.name,
-                condition=self.condition,
+                condition={
+                    ConditionType.VULNERABLE: 2,
+                },
+                target=target,
             ),
         ]
 
@@ -102,10 +97,12 @@ class Whirlwind(Card):
             x_cost=True,
         )
 
-    def play_card(self, source, target, round_state, energy):
+    def _play_card(self, target, round_state):
         return [
             Damage(
-                name=self.name, damage=self.damage, source=source, target=i,
+                damage=self.damage,
+                source=round_state.player,
+                target=enemy,
             )
-            for i in range(1, len(round_state.enemies) + 1)
+            for enemy in round_state.enemies
         ] * round_state.player.energy
