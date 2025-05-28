@@ -19,6 +19,8 @@ class ActionType(Enum):
     PLAY_ATTACK = auto()
     PLAY_SKILL = auto()
     PLAY_POWER = auto()
+    PLAY_CURSE = auto()
+    PLAY_STATUS = auto()
     PLAY_POTION = auto()
     TURN_END = auto()
     RECEIVE_ATTACK = auto()
@@ -45,10 +47,10 @@ class CharacterTarget(Enum):
 
 class TargetedMove(Action):
     """
-        A Move can encapsulate anything from a card to a potion. The difference between a Move and a TargetedMove is that:
+    A Move can encapsulate anything from a card to a potion. The difference between a Move and a TargetedMove is that:
 
-        1) A TargetedMove has its targets resolved to instances of Character(s). A Move's source and taret is intentionally defined generically. For example, the card Whirlwind does AOE damage to all enemies; its Move target is defined as GenericTarget.ENEMIES_ALL but its TargetedMove records the Character instance of source and target.
-        2) While a card like Whirlwind is defined to target all enemies, an AOE attack can be considered as a succession of single target attacks. That is, a Move target is defined as GenericTarget.ENEMIES_ALL but when played against 3 enemies, it is resolved to 3 instances of TargetedMoves, each with a single instance of an Enemy target.
+    1) A TargetedMove has its targets resolved to instances of Character(s). A Move's source and taret is intentionally defined generically. For example, the card Whirlwind does AOE damage to all enemies; its Move target is defined as GenericTarget.ENEMIES_ALL but its TargetedMove records the Character instance of source and target.
+    2) While a card like Whirlwind is defined to target all enemies, an AOE attack can be considered as a succession of single target attacks. That is, a Move target is defined as GenericTarget.ENEMIES_ALL but when played against 3 enemies, it is resolved to 3 instances of TargetedMoves, each with a single instance of an Enemy target.
     """
 
     def __init__(self, source: Character, target: Character):
@@ -58,7 +60,7 @@ class TargetedMove(Action):
 
 class Damage(TargetedMove):
     """
-        Any source of direct damage, e.g. potions, card, enemy attack
+    Any source of direct damage, e.g. potions, card, enemy attack
     """
 
     def __init__(
@@ -76,8 +78,9 @@ class Block(TargetedMove):
         self,
         block,
         source,
+        target,
     ):
-        super().__init__(source, source)  # block is always(?) self targeted
+        super().__init__(source, target)
         self.block = block
 
 

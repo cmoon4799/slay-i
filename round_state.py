@@ -54,8 +54,7 @@ TODO
 
 
 class RoundState:
-    """Represents the round state of a battle.
-    """
+    """Represents the round state of a battle."""
 
     def __init__(self, player: Player, enemies: List[Enemy]):
         self.action_queue = deque(
@@ -74,6 +73,8 @@ class RoundState:
             ActionType.PLAY_ATTACK: [],
             ActionType.PLAY_SKILL: [],
             ActionType.PLAY_POWER: [],
+            ActionType.PLAY_CURSE: [],
+            ActionType.PLAY_STATUS: [],
             ActionType.PLAY_POTION: [],
             ActionType.TURN_END: [],
             ActionType.RECEIVE_ATTACK: [],
@@ -134,8 +135,8 @@ class RoundState:
         pass
 
     def _draw_card(self):
-        assert (len(self.draw_pile) > 0 and len(self.hand) < 10)
-        if (any(isinstance(relic, FrozenEye) for relic in self.player.relics)):
+        assert len(self.draw_pile) > 0 and len(self.hand) < 10
+        if any(isinstance(relic, FrozenEye) for relic in self.player.relics):
             card = self.draw_pile.pop()
         else:
             card = self.draw_pile.pop(random.randrange(len(self.draw_pile)))
@@ -176,10 +177,14 @@ class RoundState:
             enemy.get_move()
 
         # display choices
-        self._display_choices()
-    
+        self._display()
+
     # display the state of the round
-    # gold, potions, floor level, etc
+    # inventory:
+    # player state: conditions, hp, max hp
+    # enemy states: conditions, hp, max hp
+    # hand
+    # pile sizes
     def _display(self):
         pass
 
