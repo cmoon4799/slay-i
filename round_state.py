@@ -7,6 +7,8 @@ from characters.players import Player
 from characters.enemies import Enemy
 from relics import FrozenEye
 import random
+from abstract_player import AbstractPlayer
+from potions import Potion
 
 """
 INPUT:
@@ -47,6 +49,12 @@ order...
 round start -> turn start -> 
 
 TODO
+* Add abstract communication layer (e.g. stdin/stdout, socket?).
+* Add round end detection system.
+    * Reset default player state at the end of round.
+* Akabeko shit.
+* Add ability to update player deck (e.g. Parasite for Writhing Mass).
+* Display rewards if round ends with no smoke bomb.
 * Add a hook to recalculate enemy intent upon Condition update, e.g. if player now has Vulnerable.
 * For an enemy like Writhing Mass, their intent updates with each damage taken. Should the enemy just register a callback on ENEMY_DAMAGE_TAKEN?
 
@@ -56,16 +64,19 @@ TODO
 class RoundState:
     """Represents the round state of a battle."""
 
-    def __init__(self, player: Player, enemies: List[Enemy]):
+    def __init__(
+        self, player_interface: AbstractPlayer, player: Player, enemies: List[Enemy]
+    ):
+        self.player_interface = player_interface
         self.action_queue = deque(
             [
-                Action(ActionType.ROUND_START),
+                Action(ActionType.START_ROUND),
             ]
         )  # processed left to right
         self.event_callbacks = {
-            ActionType.ROUND_START: [],
-            ActionType.ROUND_END: [],
-            ActionType.TURN_START: [],
+            ActionType.START_ROUND: [],
+            ActionType.END_ROUND: [],
+            ActionType.START_TURN: [],
             ActionType.DRAW_CARD: [],
             ActionType.SHUFFLE_DISCARD_PILE: [],
             ActionType.EXHAUST_CARD: [],
@@ -76,7 +87,7 @@ class RoundState:
             ActionType.PLAY_CURSE: [],
             ActionType.PLAY_STATUS: [],
             ActionType.PLAY_POTION: [],
-            ActionType.TURN_END: [],
+            ActionType.END_TURN: [],
             ActionType.RECEIVE_ATTACK: [],
         }
         self.draw_amount = 5
@@ -97,24 +108,25 @@ class RoundState:
         while self.action_queue:
             action = self.action_queue.popleft()
             match action.type:
-                case ActionType.ROUND_START:
+                case ActionType.START_ROUND:
                     self._round_start()
-                case ActionType.TURN_START:
+                case ActionType.START_TURN:
                     self._turn_start()
 
     def _play_card(self, card):
+        # card type specific callbacks
         if card.type == CardType.ATTACK:
-            self.play_attack(card)
+            pass
         elif card.type == CardType.SKILL:
-            self.play_skill(card)
+            pass
         elif card.type == CardType.POWER:
-            self.play_power(card)
+            pass
+
+        pass
 
     def _play_attack(self, card, target):
         # single enemy target, random enemy target, all enemies
-
         # fixed cost, x cost
-
         pass
 
     def _play_skill(self, card):
@@ -124,14 +136,15 @@ class RoundState:
         pass
 
     def _round_start(self):
-        for callback in self.event_callbacks[ActionType.ROUND_START]:
+        for callback in self.event_callbacks[ActionType.START_ROUND]:
             callback(self)
 
-        # queue TURN_START
-        self.action_queue.append(Action(ActionType.TURN_START))
+        # queue START_TURN
+        self.action_queue.append(Action(ActionType.START_TURN))
 
     def _round_end(self):
-        # update player deck with curses (Writhin Mass)
+        # update player deck with curses (Writhing Mass)
+        # display rewards if no smoke bomb
         pass
 
     def _draw_card(self):
@@ -176,27 +189,74 @@ class RoundState:
         for enemy in round_state.enemies:
             enemy.get_move()
 
-        # display choices
-        self._display()
+        while True:
+            self.player_interface.display_turn_state()
+            choices = self._get_turn_choices()
+            choice = self.player_interface.make_choice(choices)
 
-    # display the state of the round
-    # inventory:
-    # player state: conditions, hp, max hp
-    # enemy states: conditions, hp, max hp
-    # hand
-    # pile sizes
-    def _display(self):
+            # determine if the potion or card is targeted
+            if (
+                choices[choice][0].type == ActionType.PLAY_POTION
+                or choices[choice][0].type == ActionType.PLAY_CARD
+            ):
+                if (
+                    self.player.hand[choice]
+                    if choice < len(self.player.hand)
+                    else self.player.potions[choice - len(self.player.hand)]
+                ).targeted:
+                    # get target
+                    target = self.player_interface.make_choice(
+                        [
+                            (choices[choice][0].type, enemy.get_state_string)
+                            for enemy in self.enemies
+                        ]
+                    )
+
+    def _get_turn_choices(self):
+        choices = []
+        for card in self.player.hand:
+            if self.player.energy >= card.cost:
+                choices.append(
+                    Action(ActionType.PLAY_CARD),
+                    "PLAY CARD: {} ({})".format(card.name, card.description),
+                    card,
+                )
+
+        for potion in self.player.potions:
+            choices.append(
+                Action(ActionType.PLAY_POTION),
+                "PLAY POTION: {} ({})".format(potion.name, potion.description),
+                potion,
+            )
+
+        choices.append(Action(ActionType.VIEW_DRAW_PILE), "VIEW DRAW PILE")
+        choices.append(Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE")
+        choices.append(Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE")
+        choices.append(Action(ActionType.VIEW_DECK), "VIEW DECK")
+        choices.append(Action(ActionType.END_TURN), "END TURN")
+
+    def _display_turn_state(self):
+
+        print("\n\n== CHOICES ==\n\n")
+        # potions, hand cards, view piles
         pass
 
-    def _display_choices(self):
+    # potions, hand cards, view piles
+    def _display_turn_choices(self):
+        # communication layer...
+        # wait for input for choices
         pass
 
     def _turn_end(self):
-        # call end turn callbacks
-        # enemy attacks
-        # enqueue turn start
-
+        # end turn callbacks
         pass
+
+        # enemy attacks
+        for enemy in self.enemies:
+            enemy.play_move(self)
+
+        # enqueue turn start
+        self.action_queue.append(Action(ActionType.START_TURN))
 
 
 round_state = RoundState(None, [])

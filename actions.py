@@ -9,9 +9,10 @@ from characters.character import ConditionType, Character
 
 class ActionType(Enum):
     # EVENTS
-    ROUND_START = auto()
-    ROUND_END = auto()
-    TURN_START = auto()
+    START_ROUND = auto()
+    END_ROUND = auto()
+    START_TURN = auto()
+    END_TURN = auto()
     DRAW_CARD = auto()
     SHUFFLE_DISCARD_PILE = auto()
     EXHAUST_CARD = auto()
@@ -22,10 +23,13 @@ class ActionType(Enum):
     PLAY_CURSE = auto()
     PLAY_STATUS = auto()
     PLAY_POTION = auto()
-    TURN_END = auto()
     RECEIVE_ATTACK = auto()
 
-    DISPLAY_CHOICES = auto()
+    DISPLAY_CHOICES = auto()  # ?
+    VIEW_DRAW_PILE = auto()
+    VIEW_DISCARD_PILE = auto()
+    VIEW_EXHAUST_PILE = auto()
+    VIEW_DECK = auto()
 
     # TARGETED ACTIONS
     DAMAGE = auto()

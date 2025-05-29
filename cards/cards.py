@@ -49,6 +49,7 @@ class Card:
     def __init__(
         self,
         name,
+        description,
         cost,  # -1 if cost is X cost
         card_type: CardType,
         card_rarity: CardRarity,
@@ -56,6 +57,7 @@ class Card:
         targeted: bool,  # used to prompt the user to select target
     ):
         self.name = name
+        self.description = description
         self.cost = cost
         self.type = card_type
         self.card_rarity = card_rarity

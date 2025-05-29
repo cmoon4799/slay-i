@@ -10,7 +10,10 @@ add typings to parameters
 
 
 class Player(Character):
-    def __init__(self, type, potions, relics, deck, gold, base_energy):
+    def __init__(
+        self, name, max_health, type, potions, relics, deck, gold, base_energy
+    ):
+        super().__init__(name, max_health)
         self.type = type
         self.potions = potions
         self.relics = relics

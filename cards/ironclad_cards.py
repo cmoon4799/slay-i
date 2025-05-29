@@ -13,11 +13,11 @@ NOTE
 
 class Defend(Card):
     def __init__(self):
-        self.name = "DEFEND"
         self.block_count = 1
 
         super().__init__(
-            name=self.name,
+            name="DEFEND",
+            description="Gain 5 Block.",
             cost=1,
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
@@ -37,6 +37,7 @@ class Defend(Card):
 class Strike(Card):
     def __init__(self):
         self.name = "STRIKE"
+        self.description = "Deal 6 damage."
 
         super().__init__(
             name=self.name,
@@ -59,9 +60,9 @@ class Strike(Card):
 
 class Bash(Card):
     def __init__(self):
-        self.name = "BASH"
         super().__init__(
-            name=self.name,
+            name="BASH",
+            description="Deal 8 damage. Apply 2 Vulnerable.",
             cost=2,
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
@@ -86,10 +87,10 @@ class Bash(Card):
 
 class Whirlwind(Card):
     def __init__(self):
-        self.name = "WHIRLWIND"
         self.damage = 5
         super().__init__(
-            name=self.name,
+            name="WHIRLWIND",
+            description="Deal 5 damage to ALL enemies X times.",
             cost=0,
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.UNCOMMON,

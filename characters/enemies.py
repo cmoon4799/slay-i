@@ -6,6 +6,11 @@ from characters.character import Character, ConditionType
 from actions import Damage, Action, Block, Condition
 from round_state import RoundState
 
+"""
+TODO
+* Alter base stats depending on Ascension level.
+"""
+
 
 class EnemyIntent(Enum):
     ATTACK = auto()
@@ -36,7 +41,8 @@ class EnemyMove:
 
 
 class Enemy(Character):
-    def __init__(self, type: EnemyType, round_state: RoundState):
+    def __init__(self, name, max_health, type: EnemyType, round_state: RoundState):
+        super().__init__(name, max_health)
         self.type = type
         self.round_state = round_state
         self.intentions = None
@@ -63,7 +69,7 @@ class JawWorm(Enemy):
         BELLOW = auto()
 
     def __init__(self, type, round_state):
-        super().__init__(type, round_state)
+        super().__init__("JAW WORM", random.randrange(40, 45), type, round_state)
         self.Moves.CHOMP = EnemyMove(
             name="CHOMP",
             intentions=[EnemyIntent.ATTACK],

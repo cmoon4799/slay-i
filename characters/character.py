@@ -83,7 +83,10 @@ class ConditionModifierType(Enum):
 
 
 class Character:
-    def __init__(self):
+    def __init__(self, name, max_health):
+        self.name = name
+        self.max_health = max_health
+        self.health = max_health
         self.block = 0
         self._default_conditions = {
             condition_type: 0 for condition_type in ConditionType
@@ -95,6 +98,23 @@ class Character:
         }
         self.conditions = self._default_conditions.copy()
         self.condition_modifiers = self._default_condition_modifiers.copy()
+
+    def get_state_string(self):
+        out = """
+        {} | HEALTH: {}/{} | CONDITIONS: {}
+        """.format(
+            self.name,
+            self.health,
+            self.max_health,
+            ", ".join(
+                [
+                    "{}: {}".format(condition, self.conditions[condition])
+                    for condition in self.conditions
+                    if self.conditions[condition] > 0
+                ]
+            ),
+        )
+        return out
 
     # reset block and condition at round start or round end
     def reset(self):
