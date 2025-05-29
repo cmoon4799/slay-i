@@ -113,16 +113,28 @@ class RoundState:
                 case ActionType.START_TURN:
                     self._turn_start()
 
-    def _play_card(self, card):
-        # card type specific callbacks
+    def target_enemy(self):
+        return self.player_interface.make_choice(
+            [(Action, enemy.get_state_string) for enemy in self.enemies]
+            + [(Action, "GO BACK")]
+        )
+
+    def _play_card(self, card: Card):
+        enemy_index = None
+        if card.targeted:
+            enemy_index = self.target_enemy()
+            if enemy_index == len(self.enemies):
+                return
+
+        card.play_card(self.enemies[enemy_index], self)
+        self.action_queue.append(Action(ActionType.PLAY_CARD))
+
         if card.type == CardType.ATTACK:
             pass
         elif card.type == CardType.SKILL:
             pass
         elif card.type == CardType.POWER:
             pass
-
-        pass
 
     def _play_attack(self, card, target):
         # single enemy target, random enemy target, all enemies
@@ -189,28 +201,24 @@ class RoundState:
         for enemy in round_state.enemies:
             enemy.get_move()
 
+        self.display_state_and_invoke_turn_choice()
+
+    # displays turn state and invokes selected choice
+    def display_state_and_invoke_turn_choice(self):
         while True:
-            self.player_interface.display_turn_state()
+            self.turn_state = self.player_interface.display_turn_state()
             choices = self._get_turn_choices()
             choice = self.player_interface.make_choice(choices)
 
-            # determine if the potion or card is targeted
-            if (
-                choices[choice][0].type == ActionType.PLAY_POTION
-                or choices[choice][0].type == ActionType.PLAY_CARD
-            ):
-                if (
-                    self.player.hand[choice]
-                    if choice < len(self.player.hand)
-                    else self.player.potions[choice - len(self.player.hand)]
-                ).targeted:
-                    # get target
-                    target = self.player_interface.make_choice(
-                        [
-                            (choices[choice][0].type, enemy.get_state_string)
-                            for enemy in self.enemies
-                        ]
-                    )
+            match choices[choice].type:
+                case ActionType.PLAY_CARD:
+                    self._play_card(choices[choice][2])
+                case ActionType.PLAY_POTION:
+                    pass
+                case ActionType.VIEW_DRAW_PILE:
+                    self._view_pile(self.draw_pile)
+                case VIEW_DISCARD_PILE:
+                    self._view_pile(self.discard_pile)
 
     def _get_turn_choices(self):
         choices = []
@@ -235,17 +243,9 @@ class RoundState:
         choices.append(Action(ActionType.VIEW_DECK), "VIEW DECK")
         choices.append(Action(ActionType.END_TURN), "END TURN")
 
-    def _display_turn_state(self):
-
-        print("\n\n== CHOICES ==\n\n")
-        # potions, hand cards, view piles
-        pass
-
-    # potions, hand cards, view piles
-    def _display_turn_choices(self):
-        # communication layer...
-        # wait for input for choices
-        pass
+    def _view_pile(self, pile: List[Card]):
+        for card in pile:
+            
 
     def _turn_end(self):
         # end turn callbacks

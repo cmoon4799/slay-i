@@ -25,7 +25,7 @@ class Defend(Card):
             targeted=False,
         )
 
-    def _play_card(self, target, round_state):
+    def play_card(self, target, round_state):
         return [
             Block(
                 block=5,
@@ -48,7 +48,7 @@ class Strike(Card):
             targeted=True,
         )
 
-    def _play_card(self, target, round_state):
+    def play_card(self, target, round_state):
         return [
             Damage(
                 damage=6,
@@ -69,7 +69,7 @@ class Bash(Card):
             card_class=CardClass.IRONCLAD,
         )
 
-    def _play_card(self, target, round_state):
+    def play_card(self, target, round_state):
         return [
             Damage(
                 damage=8,
@@ -98,7 +98,7 @@ class Whirlwind(Card):
             x_cost=True,
         )
 
-    def _play_card(self, target, round_state):
+    def play_card(self, target, round_state):
         return [
             Damage(
                 damage=self.damage,

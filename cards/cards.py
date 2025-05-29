@@ -70,11 +70,10 @@ class Card:
         self.retain = False
         self.ethereal = False
 
-    def play_card(self, round_state):
-        target = round_state.target_enemy() if self.targeted else None
-        return self._play_card(target, round_state)
+    def get_card_info_string(self):
+        return "{} ({}) | Cost: {} | Type: {} | Rarity: {}"
 
-    def _play_card(self, target, round_state):
+    def play_card(self, target, round_state):
         raise NotImplementedError("Each card must define its play behavior.")
 
     def upgrade(self):

@@ -21,8 +21,7 @@ class AbstractPlayer(ABC):
 
 class ConsolePlayer(AbstractPlayer):
     def display_turn_state(self, round_state: RoundState):
-        # display inventory
-        print("\n\n== PLAYER INVENTORY =\n\n")
+        print("\n\n== INVENTORY =\n\n")
         print(
             "POTIONS: "
             + ", ".join([potion.name for potion in round_state.player.potions])
@@ -33,24 +32,18 @@ class ConsolePlayer(AbstractPlayer):
         )
         print("GOLD: " + round_state.player.gold)
 
-        # display player state
-        print("\n\n== PLAYER STATE =\n\n")
+        print("\n\n== PLAYER =\n\n")
         print(round_state.player.get_state_string())
 
         print("\n\n== ENEMIES ==\n\n")
-
-        # display enemy states
         for i in range(len(round_state.enemies)):
             print("ENEMY {}".format(i))
             print(round_state.enemies[i].get_state_string())
 
-    def make_choice(self, choices: List[Tuple[ActionType, str]]) -> int:
+    def make_choice(self, choices: List) -> int:
         print("\n\n== CHOICES ==\n\n")
-        for number, description in choices:
-            print(f"  {number}. {description}")
-
-        for i, (type, description) in enumerate(choices):
-            print("({}) {}".format(i, description))
+        for i in range(len(choices)):
+            print("({}) {}".format(i, choices[i][1]))
 
         while True:
             try:
