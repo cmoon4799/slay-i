@@ -1,5 +1,7 @@
-from round_state import RoundState
-from characters.character import Player, PlayerType
+from round_state import RoundState, EncounterType
+from characters.players import Ironclad
+from characters.enemies import JawWorm
+from abstract_player import ConsolePlayer
 
 """
 map
@@ -16,20 +18,19 @@ timer
 ascension modes
 """
 
-
-round_state = RoundState()
-
-
 # generate map (enemies for each room, etc)
 
 # create character
-player = Player(
-    PlayerType.IRONCLAD,
-    [],  # potions
-    [],  # relics
-    [],  # deck
-    0,  # gold
+player = Ironclad()
+enemies = [JawWorm()]
+round_state = RoundState(
+    player_interface=ConsolePlayer(),
+    player=player,
+    enemies=enemies,
+    encounter_type=EncounterType.HALLWAY,
 )
+
+round_state.process_action_queue()
 
 # starter relic
 # filter relics_by_rarity based on player class

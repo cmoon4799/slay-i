@@ -1,5 +1,5 @@
 from cards.cards import Card, CardType, CardRarity, CardClass
-from actions import Damage, Source, Condition, Block, CharacterTarget
+from actions import Damage, Condition, Block
 from characters.character import ConditionType
 
 
@@ -13,13 +13,11 @@ NOTE
 
 class Defend(Card):
     def __init__(self):
-        self.block_count = 1
-
         super().__init__(
             name="DEFEND",
             description="Gain 5 Block.",
             cost=1,
-            card_type=CardType.ATTACK,
+            card_type=CardType.SKILL,
             card_rarity=CardRarity.BASIC,
             card_class=CardClass.IRONCLAD,
             targeted=False,
@@ -36,11 +34,9 @@ class Defend(Card):
 
 class Strike(Card):
     def __init__(self):
-        self.name = "STRIKE"
-        self.description = "Deal 6 damage."
-
         super().__init__(
-            name=self.name,
+            name="STRIKE",
+            description="Deal 6 damage.",
             cost=1,
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
@@ -67,6 +63,7 @@ class Bash(Card):
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.BASIC,
             card_class=CardClass.IRONCLAD,
+            targeted=True,
         )
 
     def play_card(self, target, round_state):
@@ -95,7 +92,7 @@ class Whirlwind(Card):
             card_type=CardType.ATTACK,
             card_rarity=CardRarity.UNCOMMON,
             card_class=CardClass.IRONCLAD,
-            x_cost=True,
+            targeted=False,
         )
 
     def play_card(self, target, round_state):

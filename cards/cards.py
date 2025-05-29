@@ -1,5 +1,4 @@
 from enum import Enum, auto
-from round_state import RoundState
 
 """
 mechanics to consider...
@@ -59,19 +58,23 @@ class Card:
         self.name = name
         self.description = description
         self.cost = cost
-        self.type = card_type
+        self.card_type = card_type
         self.card_rarity = card_rarity
         self.card_class = card_class
         self.targeted = targeted
 
         self.upgraded = False
-        self.description = ""
         self.exhaust = False
         self.retain = False
         self.ethereal = False
 
     def get_card_info_string(self):
-        return "{} ({}) | Cost: {} | Type: {} | Rarity: {}"
+        return "{} ({}) | Cost: {} | Type: {}".format(
+            self.name,
+            self.description,
+            self.cost,
+            self.card_type.name,
+        )
 
     def play_card(self, target, round_state):
         raise NotImplementedError("Each card must define its play behavior.")
@@ -87,7 +90,7 @@ class Card:
             self.__class__()
         )  # Assuming each card can be initialized without args or has its own override
 
-    def is_playable(self, round_state: RoundState):
+    def is_playable(self, round_state):
         """Check if the card can be played (enough energy, etc)."""
         return round_state.player.energy >= self.cost
 

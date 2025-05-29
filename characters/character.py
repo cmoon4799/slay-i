@@ -1,6 +1,5 @@
-from enum import Enum, auto
-from actions import Damage, Block, Condition
 from __future__ import annotations
+from enum import Enum, auto
 from math import floor
 
 """
@@ -100,9 +99,7 @@ class Character:
         self.condition_modifiers = self._default_condition_modifiers.copy()
 
     def get_state_string(self):
-        out = """
-        {} | HEALTH: {}/{} | CONDITIONS: {}
-        """.format(
+        out = "{} | HEALTH: {}/{} | CONDITIONS: {}".format(
             self.name,
             self.health,
             self.max_health,
@@ -121,15 +118,6 @@ class Character:
         self.block = 0
         self.conditions = self._default_conditions.copy()
         self.condition_modifiers = self._default_condition_modifiers.copy()
-
-    # Damage, Block, Condition
-    def receive_targeted_action(self, action):
-        if isinstance(action, Damage):
-            self.receive_damage(action)
-        elif isinstance(action, Block):
-            self.receive_block(action)
-        elif isinstance(action, Condition):
-            self.receive_condition(action)
 
     # receive attack from opponent
     def receive_damage(self, damage):

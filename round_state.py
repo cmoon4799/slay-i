@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum, auto
 from cards.cards import Card, CardType
 from collections import defaultdict, deque
@@ -5,7 +6,7 @@ from typing import Callable, List, Dict
 from actions import Action, ActionType
 from characters.players import Player
 from characters.enemies import Enemy
-from relics import FrozenEye
+from relics.relics import FrozenEye
 import random
 from abstract_player import AbstractPlayer
 from potions import Potion
@@ -53,6 +54,7 @@ TODO
 * Add round end detection system.
     * Reset default player state at the end of round.
 * Akabeko shit.
+* Update intentions whenever it gets hit or something...
 * Add ability to update player deck (e.g. Parasite for Writhing Mass).
 * Display rewards if round ends with no smoke bomb.
 * Add a hook to recalculate enemy intent upon Condition update, e.g. if player now has Vulnerable.
@@ -61,12 +63,25 @@ TODO
 """
 
 
+class EncounterType(Enum):
+    BOSS = auto()
+    ELITE = auto()
+    HALLWAY = auto()
+
+
 class RoundState:
     """Represents the round state of a battle."""
 
     def __init__(
-        self, player_interface: AbstractPlayer, player: Player, enemies: List[Enemy]
+        self,
+        player_interface: AbstractPlayer,
+        player: Player,
+        enemies: List[Enemy],
+        encounter_type: EncounterType,
     ):
+        self.player = player
+        self.enemies = enemies
+        self.encounter_type = encounter_type
         self.player_interface = player_interface
         self.action_queue = deque(
             [
@@ -92,8 +107,6 @@ class RoundState:
         }
         self.draw_amount = 5
         self.round = 1
-        self.player = player
-        self.enemies = enemies
 
         # piles
         self.draw_pile = player.deck.copy()
@@ -107,6 +120,7 @@ class RoundState:
     def process_action_queue(self):
         while self.action_queue:
             action = self.action_queue.popleft()
+            print(action.type)
             match action.type:
                 case ActionType.START_ROUND:
                     self._round_start()
@@ -171,13 +185,13 @@ class RoundState:
 
     def _attempt_draw(self):
         if len(self.draw_pile) > 0:
-            if len(self.hand < 10):
+            if len(self.hand) < 10:
                 self._draw_card()
         else:
             self._shuffle_discard_pile()
 
             if len(self.draw_pile) > 0:
-                if len(self.hand < 10):
+                if len(self.hand) < 10:
                     self._draw_card()
 
     def _shuffle_discard_pile(self):
@@ -198,7 +212,7 @@ class RoundState:
             self._attempt_draw()
 
         # get enemy move
-        for enemy in round_state.enemies:
+        for enemy in self.enemies:
             enemy.get_move()
 
         self.display_state_and_invoke_turn_choice()
@@ -206,46 +220,60 @@ class RoundState:
     # displays turn state and invokes selected choice
     def display_state_and_invoke_turn_choice(self):
         while True:
-            self.turn_state = self.player_interface.display_turn_state()
+            self.turn_state = self.player_interface.display_turn_state(self)
             choices = self._get_turn_choices()
             choice = self.player_interface.make_choice(choices)
 
-            match choices[choice].type:
+            match choices[choice][0].type:
                 case ActionType.PLAY_CARD:
                     self._play_card(choices[choice][2])
                 case ActionType.PLAY_POTION:
                     pass
                 case ActionType.VIEW_DRAW_PILE:
                     self._view_pile(self.draw_pile)
-                case VIEW_DISCARD_PILE:
+                case ActionType.VIEW_DISCARD_PILE:
                     self._view_pile(self.discard_pile)
+                case ActionType.VIEW_EXHAUST_PILE:
+                    self._view_pile(self.exhaust_pile)
+                case ActionType.VIEW_DECK:
+                    self._view_pile(self.player.deck)
 
     def _get_turn_choices(self):
         choices = []
-        for card in self.player.hand:
+        for card in self.hand:
             if self.player.energy >= card.cost:
                 choices.append(
-                    Action(ActionType.PLAY_CARD),
-                    "PLAY CARD: {} ({})".format(card.name, card.description),
-                    card,
+                    (
+                        Action(ActionType.PLAY_CARD),
+                        "PLAY CARD: {} ({})".format(
+                            card.name, card.description),
+                        card,
+                    )
                 )
 
         for potion in self.player.potions:
             choices.append(
-                Action(ActionType.PLAY_POTION),
-                "PLAY POTION: {} ({})".format(potion.name, potion.description),
-                potion,
+                (
+                    Action(ActionType.PLAY_POTION),
+                    "PLAY POTION: {} ({})".format(
+                        potion.name, potion.description),
+                    potion,
+                )
             )
 
-        choices.append(Action(ActionType.VIEW_DRAW_PILE), "VIEW DRAW PILE")
-        choices.append(Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE")
-        choices.append(Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE")
-        choices.append(Action(ActionType.VIEW_DECK), "VIEW DECK")
-        choices.append(Action(ActionType.END_TURN), "END TURN")
+        choices.append((Action(ActionType.VIEW_DRAW_PILE), "VIEW DRAW PILE"))
+        choices.append((Action(ActionType.VIEW_DISCARD_PILE),
+                       "VIEW DISCARD PILE"))
+        choices.append((Action(ActionType.VIEW_EXHAUST_PILE),
+                       "VIEW EXHAUST PILE"))
+        choices.append((Action(ActionType.VIEW_DECK), "VIEW DECK"))
+        choices.append((Action(ActionType.END_TURN), "END TURN"))
+
+        return choices
 
     def _view_pile(self, pile: List[Card]):
         for card in pile:
-            
+            print(card.get_card_info_string())
 
     def _turn_end(self):
         # end turn callbacks
@@ -253,11 +281,7 @@ class RoundState:
 
         # enemy attacks
         for enemy in self.enemies:
-            enemy.play_move(self)
+            enemy.move_method(self)
 
         # enqueue turn start
         self.action_queue.append(Action(ActionType.START_TURN))
-
-
-round_state = RoundState(None, [])
-print(round_state.event_callbacks)
