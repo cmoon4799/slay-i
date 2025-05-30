@@ -13,6 +13,8 @@ class ActionType(Enum):
     END_ROUND = auto()
     START_TURN = auto()
     END_TURN = auto()
+    GET_ENEMY_MOVE = auto()
+    DRAW_HAND = auto()
     DRAW_CARD = auto()
     SHUFFLE_DISCARD_PILE = auto()
     EXHAUST_CARD = auto()
@@ -25,7 +27,7 @@ class ActionType(Enum):
     PLAY_POTION = auto()
     RECEIVE_ATTACK = auto()
 
-    DISPLAY_CHOICES = auto()  # ?
+    DISPLAY_TURN_STATE = auto()  # ?
     VIEW_DRAW_PILE = auto()
     VIEW_DISCARD_PILE = auto()
     VIEW_EXHAUST_PILE = auto()

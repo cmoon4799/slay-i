@@ -36,7 +36,7 @@ class CardRarity(Enum):
     SPECIAL = auto()
 
 
-class CardClass(Enum):
+class CardCategory(Enum):
     IRONCLAD = auto()
     SILENT = auto()
     DEFECT = auto()
@@ -50,17 +50,17 @@ class Card:
         name,
         description,
         cost,  # -1 if cost is X cost
-        card_type: CardType,
-        card_rarity: CardRarity,
-        card_class: CardClass,
+        type: CardType,
+        rarity: CardRarity,
+        category: CardCategory,
         targeted: bool,  # used to prompt the user to select target
     ):
         self.name = name
         self.description = description
         self.cost = cost
-        self.card_type = card_type
-        self.card_rarity = card_rarity
-        self.card_class = card_class
+        self.type = type
+        self.rarity = rarity
+        self.category = category
         self.targeted = targeted
 
         self.upgraded = False
@@ -73,7 +73,7 @@ class Card:
             self.name,
             self.description,
             self.cost,
-            self.card_type.name,
+            self.type.name,
         )
 
     def play_card(self, target, round_state):

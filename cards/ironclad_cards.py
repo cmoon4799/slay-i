@@ -1,4 +1,4 @@
-from cards.cards import Card, CardType, CardRarity, CardClass
+from cards.cards import Card, CardType, CardRarity, CardCategory
 from actions import Damage, Condition, Block
 from characters.character import ConditionType
 
@@ -17,9 +17,9 @@ class Defend(Card):
             name="DEFEND",
             description="Gain 5 Block.",
             cost=1,
-            card_type=CardType.SKILL,
-            card_rarity=CardRarity.BASIC,
-            card_class=CardClass.IRONCLAD,
+            type=CardType.SKILL,
+            rarity=CardRarity.BASIC,
+            category=CardCategory.IRONCLAD,
             targeted=False,
         )
 
@@ -38,9 +38,9 @@ class Strike(Card):
             name="STRIKE",
             description="Deal 6 damage.",
             cost=1,
-            card_type=CardType.ATTACK,
-            card_rarity=CardRarity.BASIC,
-            card_class=CardClass.IRONCLAD,
+            type=CardType.ATTACK,
+            rarity=CardRarity.BASIC,
+            category=CardCategory.IRONCLAD,
             targeted=True,
         )
 
@@ -60,9 +60,9 @@ class Bash(Card):
             name="BASH",
             description="Deal 8 damage. Apply 2 Vulnerable.",
             cost=2,
-            card_type=CardType.ATTACK,
-            card_rarity=CardRarity.BASIC,
-            card_class=CardClass.IRONCLAD,
+            type=CardType.ATTACK,
+            rarity=CardRarity.BASIC,
+            category=CardCategory.IRONCLAD,
             targeted=True,
         )
 
@@ -89,9 +89,9 @@ class Whirlwind(Card):
             name="WHIRLWIND",
             description="Deal 5 damage to ALL enemies X times.",
             cost=0,
-            card_type=CardType.ATTACK,
-            card_rarity=CardRarity.UNCOMMON,
-            card_class=CardClass.IRONCLAD,
+            type=CardType.ATTACK,
+            rarity=CardRarity.UNCOMMON,
+            category=CardCategory.IRONCLAD,
             targeted=False,
         )
 
