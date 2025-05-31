@@ -40,6 +40,7 @@ class Enemy(Character):
         self.intentions = None
         self.move_method = None
         self.move_order = []
+        self.move: EnemyMove = None
         self.move_map = {}
 
     def get_state_string(self):
@@ -49,6 +50,8 @@ class Enemy(Character):
             self.block,
             ", ".join(type.name for type in self.intentions),
         )
+        if EnemyIntent.ATTACK in self.intentions:
+            out += " | {}x{}".format(self.move.damage, self.move.hit_count)
         if any(self.conditions[condition] > 0 for condition in self.conditions):
             out += " | " + ", ".join(
                 [
@@ -63,17 +66,18 @@ class Enemy(Character):
         raise NotImplementedError("Each enemy must define its move behavior.")
 
     def play_move(self, round_state):
-        self.move_method(round_state)
-        self.move_order.append()
+        round_state.action_queue.extend(self.move_method(round_state))
+        self.move_order.append(self.move_name)
 
     def _set_move(self, move_name):
         enemy_move: EnemyMove = self.move_map[move_name]
+        self.move = enemy_move
         self.intentions = enemy_move.intentions
         self.move_method = enemy_move.play_move
         self.move_name = move_name
 
     def _last_move(self, move, n):
-        return len(self.move_roder) >= n and all(
+        return len(self.move_order) >= n and all(
             m == move for m in self.move_order[-n:]
         )
 
@@ -129,6 +133,7 @@ class JawWorm(Enemy):
             Block(
                 block=5,
                 source=self,
+                target=self,
             ),
         ]
 

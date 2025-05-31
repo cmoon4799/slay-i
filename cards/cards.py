@@ -1,4 +1,6 @@
 from enum import Enum, auto
+from typing import List
+import textwrap
 
 """
 mechanics to consider...
@@ -96,3 +98,51 @@ class Card:
 
     def __str__(self):
         return f"{self.name} ({self.type.name}) - Cost: {self.cost}"
+
+
+def build_card_table(title, cards: List[Card], col_widths=(22, 6, 9, 45)):
+    name_w, cost_w, type_w, desc_w = col_widths
+
+    def pad(s, width):
+        return s.ljust(width)
+
+    def draw_line(char="-"):
+        return "+" + "+".join([char * w for w in col_widths]) + "+"
+
+    def format_row(name, cost, typ, desc):
+        wrapped_desc = textwrap.wrap(desc, desc_w)
+        lines = max(1, len(wrapped_desc))
+        rows = []
+        for i in range(lines):
+            row = "|"
+            row += pad(f" {name}" if i == 0 else "", name_w) + "|"
+            row += pad(f" {str(cost)}" if i == 0 else "", cost_w) + "|"
+            row += pad(f" {typ}" if i == 0 else "", type_w) + "|"
+            row += pad(f" {wrapped_desc[i]}", desc_w) + "|"
+            rows.append(row)
+        return rows
+
+    output = []
+    output.append("+" + "-" * (sum(col_widths) + 3) + "+")
+    output.append("|" + title.center(sum(col_widths) + 3) + "|")
+    output.append(draw_line("="))
+    output.append(
+        "|"
+        + pad(" NAME", name_w)
+        + "|"
+        + pad(" COST", cost_w)
+        + "|"
+        + pad(" TYPE", type_w)
+        + "|"
+        + pad(" DESCRIPTION", desc_w)
+        + "|"
+    )
+    output.append(draw_line("="))
+
+    for card in cards:
+        output.extend(
+            format_row(card.name, card.cost, card.type.name, card.description)
+        )
+
+    output.append(draw_line("-"))
+    return output

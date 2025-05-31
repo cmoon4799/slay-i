@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum, auto
 from math import floor
-from cards.cards import Card, CardType
+from cards.cards import Card, CardType, build_card_table
 from collections import defaultdict, deque
 from typing import Callable, List, Dict
 from actions import Action, ActionType, Damage
@@ -134,8 +134,10 @@ class RoundState:
 
     def target_enemy(self):
         enemy_index = self.player_interface.make_choice(
-            [(Action, f"{enemy.name} {enemy.get_state_string()}")
-             for enemy in self.enemies]
+            [
+                (Action, f"{enemy.name} {enemy.get_state_string()}")
+                for enemy in self.enemies
+            ]
             + [(Action, "GO BACK")]
         )
 
@@ -226,6 +228,10 @@ class RoundState:
         for enemy in self.enemies:
             enemy.get_move()
 
+    # get state representation based on abstract player interface
+    def _get_state(self):
+        pass
+
     # displays turn state and invokes selected choice
     def display_turn_state_and_choices(self):
         self.turn_state = self.player_interface.display_turn_state(self)
@@ -238,15 +244,19 @@ class RoundState:
             case ActionType.PLAY_POTION:
                 pass
             case ActionType.VIEW_DRAW_PILE:
-                self._view_pile(self.draw_pile)
+                self._view_pile("DRAW PILE", self.draw_pile)
             case ActionType.VIEW_DISCARD_PILE:
-                self._view_pile(self.discard_pile)
+                self._view_pile("DISCARD PILE", self.discard_pile)
             case ActionType.VIEW_EXHAUST_PILE:
-                self._view_pile(self.exhaust_pile)
+                self._view_pile("EXHAUST PILE", self.exhaust_pile)
             case ActionType.VIEW_DECK:
-                self._view_pile(self.player.deck)
+                self._view_pile("VIEW DECK", self.player.deck)
             case ActionType.END_TURN:
                 self._end_turn()
+
+    def _view_pile(self, title, cards):
+        for line in build_card_table(title, cards):
+            print(line)
 
     def _get_turn_choices(self):
         choices = []
@@ -255,8 +265,7 @@ class RoundState:
                 choices.append(
                     (
                         Action(ActionType.PLAY_CARD),
-                        "PLAY CARD: {} ({})".format(
-                            card.name, card.description),
+                        "PLAY CARD: {} ({})".format(card.name, card.description),
                         card,
                     )
                 )
@@ -265,33 +274,30 @@ class RoundState:
             choices.append(
                 (
                     Action(ActionType.PLAY_POTION),
-                    "PLAY POTION: {} ({})".format(
-                        potion.name, potion.description),
+                    "PLAY POTION: {} ({})".format(potion.name, potion.description),
                     potion,
                 )
             )
 
         choices.append((Action(ActionType.VIEW_DRAW_PILE), "VIEW DRAW PILE"))
-        choices.append(
-            (Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE"))
-        choices.append(
-            (Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE"))
+        choices.append((Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE"))
+        choices.append((Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE"))
         choices.append((Action(ActionType.VIEW_DECK), "VIEW DECK"))
         choices.append((Action(ActionType.END_TURN), "END TURN"))
 
         return choices
 
-    def _view_pile(self, pile: List[Card]):
-        for card in pile:
-            print(card.get_card_info_string())
-
     def _end_turn(self):
         # end turn callbacks
         pass
 
+        # discard cards
+        self.discard_pile.extend(self.hand)
+        self.hand = []
+
         # enemy attacks
         for enemy in self.enemies:
-            self.action_queue.extend(enemy.move_method(self))
+            enemy.play_move(self)
 
         self.turn += 1
         # enqueue turn start

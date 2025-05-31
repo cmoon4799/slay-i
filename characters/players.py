@@ -61,8 +61,7 @@ class Player(Character):
     def receive_damage(self, damage: Damage, round_state):
         damage = self.calculate_damage(damage)
 
-        block, damage = max(self.block - damage,
-                            0), max(damage - self.block, 0)
+        block, damage = max(self.block - damage, 0), max(damage - self.block, 0)
         self.block = block
 
         if damage > 0:
@@ -73,8 +72,8 @@ class Player(Character):
 
 
 IRONCLAD_STARTING_DECK = {
-    ironclad_cards.Defend: 1,
-    ironclad_cards.Strike: 1,
+    ironclad_cards.Defend: 4,
+    ironclad_cards.Strike: 5,
     ironclad_cards.Bash: 1,
 }
 
@@ -87,8 +86,11 @@ class Ironclad(Player):
             type=PlayerType.IRONCLAD,
             potions=[],
             relics=[],
-            deck=[card_class() for card_class, count in IRONCLAD_STARTING_DECK.items()
-                  for _ in range(count)],
+            deck=[
+                card_class()
+                for card_class, count in IRONCLAD_STARTING_DECK.items()
+                for _ in range(count)
+            ],
             gold=99,
             base_energy=3,
         )
