@@ -28,6 +28,7 @@ class Defend(Card):
             Block(
                 block=5,
                 source=round_state.player,
+                target=round_state.player,
             )
         ]
 
@@ -77,6 +78,7 @@ class Bash(Card):
                 condition={
                     ConditionType.VULNERABLE: 2,
                 },
+                source=round_state.player,
                 target=target,
             ),
         ]

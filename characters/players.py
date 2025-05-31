@@ -1,8 +1,8 @@
 from enum import Enum, auto
 from characters.character import Character
-from collections import defaultdict
 import cards.ironclad_cards as ironclad_cards
 import copy
+from actions import Damage
 
 """
 TODO
@@ -32,20 +32,21 @@ class Player(Character):
         self.base_energy = base_energy
 
     def get_state_string(self):
-        out = "{} | HEALTH: {}/{} | ENERGY: {}/{} | CONDITIONS: {}".format(
-            self.name,
+        out = "HEALTH: {}/{} | BLOCK: {} | ENERGY: {}/{}".format(
             self.health,
             self.max_health,
+            self.block,
             self.energy,
             self.base_energy,
-            ", ".join(
+        )
+        if any(self.conditions[condition] > 0 for condition in self.conditions):
+            out += " | CONDITIONS: " + ", ".join(
                 [
                     "{}: {}".format(condition, self.conditions[condition])
                     for condition in self.conditions
                     if self.conditions[condition] > 0
                 ]
-            ),
-        )
+            )
         return out
 
     def reset(self):
@@ -57,14 +58,25 @@ class Player(Character):
     def remove_relic(self, relic):
         pass
 
+    def receive_damage(self, damage: Damage, round_state):
+        damage = self.calculate_damage(damage)
 
-IRONCLAD_STARTING_DECK = [
-    ironclad_cards.Defend() for _ in range(4)
-] + [
-    ironclad_cards.Strike() for _ in range(5)
-] + [
-    ironclad_cards.Bash()
-]
+        block, damage = max(self.block - damage,
+                            0), max(damage - self.block, 0)
+        self.block = block
+
+        if damage > 0:
+            # hook in torii and tungsten rod
+            pass
+
+        self.health -= damage
+
+
+IRONCLAD_STARTING_DECK = {
+    ironclad_cards.Defend: 1,
+    ironclad_cards.Strike: 1,
+    ironclad_cards.Bash: 1,
+}
 
 
 class Ironclad(Player):
@@ -75,7 +87,8 @@ class Ironclad(Player):
             type=PlayerType.IRONCLAD,
             potions=[],
             relics=[],
-            deck=copy.deepcopy(IRONCLAD_STARTING_DECK),
+            deck=[card_class() for card_class, count in IRONCLAD_STARTING_DECK.items()
+                  for _ in range(count)],
             gold=99,
             base_energy=3,
         )

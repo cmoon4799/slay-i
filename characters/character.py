@@ -105,7 +105,7 @@ class Character:
             self.max_health,
             ", ".join(
                 [
-                    "{}: {}".format(condition, self.conditions[condition])
+                    "{}: {}".format(condition.name, self.conditions[condition])
                     for condition in self.conditions
                     if self.conditions[condition] > 0
                 ]
@@ -127,25 +127,59 @@ class Character:
     def receive_condition():
         pass
 
-    def calculate_damage(self, target: Character, base_damage: int) -> int:
-        strength = self.conditions[ConditionType.STRENGTH]
-        damage = base_damage + strength
+    def calculate_block(self, block) -> int:
+        dexterity = self.conditions[ConditionType.DEXTERITY]
+        base_block = block.block + dexterity
 
-        if ConditionType.WEAK in self.conditions:
-            damage = floor(
-                damage
+        if self.conditions[ConditionType.FRAIL] > 0:
+            base_block = floor(
+                base_block
+                * (1 - self.condition_modifiers[ConditionModifierType.FRAIL_MODIFIER])
+            )
+
+        return max(0, base_block)
+
+    def receive_block(self, block, round_state):
+        self.block += self.calculate_block(block)
+
+    def calculate_damage(self, damage) -> int:
+        strength = self.conditions[ConditionType.STRENGTH]
+        base_damage = damage.damage + strength
+
+        if self.conditions[ConditionType.WEAK] > 0:
+            base_damage = floor(
+                base_damage
                 * (1 - self.condition_modifiers[ConditionModifierType.WEAK_MODIFIER])
             )
 
-        if target.conditions[ConditionType.VULNERABLE] > 1:
-            damage = floor(
-                damage
+        print("vulnerable: ",
+              damage.target.conditions[ConditionType.VULNERABLE])
+        if damage.target.conditions[ConditionType.VULNERABLE] > 0:
+            base_damage = floor(
+                base_damage
                 * (
                     1
-                    + target.condition_modifiers[
+                    + damage.target.condition_modifiers[
                         ConditionModifierType.VULNERABLE_MODIFIER
                     ]
                 )
             )
 
-        return max(0, damage)
+        return max(0, base_damage)
+
+    def receive_damage(self, damage, round_state):
+        damage = self.calculate_damage(damage)
+
+        block, damage = max(self.block - damage,
+                            0), max(damage - self.block, 0)
+        self.block = block
+
+        if damage > 0:
+            # hook in torii and tungsten rod
+            pass
+
+        self.health -= damage
+
+    def receive_condition(self, condition, round_state):
+        for condition_type, amount in condition.condition.items():
+            self.conditions[condition_type] += amount

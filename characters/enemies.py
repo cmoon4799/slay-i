@@ -43,19 +43,20 @@ class Enemy(Character):
         self.move_map = {}
 
     def get_state_string(self):
-        out = "{} | HEALTH: {}/{} | INTENTIONS {} | CONDITIONS: {}".format(
-            self.name,
+        out = "HEALTH: {}/{} | BLOCK: {} | INTENTIONS: {}".format(
             self.health,
             self.max_health,
-            self.intentions,
-            ", ".join(
+            self.block,
+            ", ".join(type.name for type in self.intentions),
+        )
+        if any(self.conditions[condition] > 0 for condition in self.conditions):
+            out += " | " + ", ".join(
                 [
-                    "{}: {}".format(condition, self.conditions[condition])
+                    "{}: {}".format(condition.name, self.conditions[condition])
                     for condition in self.conditions
                     if self.conditions[condition] > 0
                 ]
-            ),
-        )
+            )
         return out
 
     def get_move(self):
