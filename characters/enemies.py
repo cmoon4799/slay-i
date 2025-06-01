@@ -65,8 +65,8 @@ class Enemy(Character):
     def get_move(self):
         raise NotImplementedError("Each enemy must define its move behavior.")
 
-    def play_move(self, round_state):
-        round_state.action_queue.extend(self.move_method(round_state))
+    def play_move(self, battle):
+        battle.action_queue.extend(self.move_method(battle))
         self.move_order.append(self.move_name)
 
     def _set_move(self, move_name):
@@ -114,21 +114,21 @@ class JawWorm(Enemy):
             ),
         }
 
-    def _chomp(self, round_state):
+    def _chomp(self, battle):
         return [
             Damage(
                 damage=11,
                 source=self,
-                target=round_state.player,
+                target=battle.player,
             )
         ]
 
-    def _thrash(self, round_state):
+    def _thrash(self, battle):
         return [
             Damage(
                 damage=7,
                 source=self,
-                target=round_state.player,
+                target=battle.player,
             ),
             Block(
                 block=5,
@@ -137,7 +137,7 @@ class JawWorm(Enemy):
             ),
         ]
 
-    def _bellow(self, round_state):
+    def _bellow(self, battle):
         return [
             Condition(
                 condition={

@@ -58,10 +58,11 @@ class Player(Character):
     def remove_relic(self, relic):
         pass
 
-    def receive_damage(self, damage: Damage, round_state):
+    def receive_damage(self, damage: Damage, battle):
         damage = self.calculate_damage(damage)
 
-        block, damage = max(self.block - damage, 0), max(damage - self.block, 0)
+        block, damage = max(self.block - damage,
+                            0), max(damage - self.block, 0)
         self.block = block
 
         if damage > 0:

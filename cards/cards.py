@@ -78,7 +78,7 @@ class Card:
             self.type.name,
         )
 
-    def play_card(self, target, round_state):
+    def play_card(self, target, battle):
         raise NotImplementedError("Each card must define its play behavior.")
 
     def upgrade(self):
@@ -92,9 +92,9 @@ class Card:
             self.__class__()
         )  # Assuming each card can be initialized without args or has its own override
 
-    def is_playable(self, round_state):
+    def is_playable(self, battle):
         """Check if the card can be played (enough energy, etc)."""
-        return round_state.player.energy >= self.cost
+        return battle.player.energy >= self.cost
 
     def __str__(self):
         return f"{self.name} ({self.type.name}) - Cost: {self.cost}"

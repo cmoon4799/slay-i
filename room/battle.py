@@ -10,7 +10,8 @@ from characters.players import Player
 from characters.enemies import Enemy
 from relics.relics import FrozenEye
 import random
-from abstract_player import AbstractPlayer
+from abstract_player import AbstractPlayer, ConsolePlayer
+from room.room import Room
 
 """
 INPUT:
@@ -69,25 +70,32 @@ TODO
 """
 
 
-class EncounterType(Enum):
+class BattleType(Enum):
     BOSS = auto()
     ELITE = auto()
     HALLWAY = auto()
 
 
-class RoundState:
-    """Represents the round state of a battle."""
+class BattleState(Enum):
+    ENEMIES = auto()
+    HAND = auto()
+    DRAW_PILE = auto()
+    DISCARD_PILE = auto()
+    EXHAUST_PILE = auto()
+    TURN = auto()
 
+
+class Battle(Room):
     def __init__(
         self,
-        player_interface: AbstractPlayer,
         player: Player,
         enemies: List[Enemy],
-        encounter_type: EncounterType,
+        battle_type: BattleType,
+        player_interface: AbstractPlayer,
     ):
         self.player = player
         self.enemies = enemies
-        self.encounter_type = encounter_type
+        self.battle_type = battle_type
         self.player_interface = player_interface
         self.action_queue = deque(
             [
@@ -101,8 +109,8 @@ class RoundState:
         self.player_turn = True
 
         # piles
-        self.draw_pile = player.deck.copy()
         self.hand = []
+        self.draw_pile = player.deck.copy()
         self.discard_pile = []
         self.exhaust_pile = []
 
@@ -110,30 +118,28 @@ class RoundState:
         pass
 
     def process_action_queue(self):
-        while True:
-            while self.action_queue:
-                action = self.action_queue.popleft()
-                print("action: ", action)
-                for callback in self.action_callbacks[action.type]:
-                    callback(self)
-                match action.type:
-                    case ActionType.START_ROUND:
-                        self._start_round()
-                    case ActionType.START_TURN:
-                        self._start_turn()
-                    case ActionType.DRAW_HAND:
-                        for _ in range(self.draw_amount):
-                            self._attempt_draw()
-                    case ActionType.DAMAGE:
-                        action.target.receive_damage(action, self)
-                    case ActionType.BLOCK:
-                        action.target.receive_block(action, self)
-                    case ActionType.CONDITION:
-                        action.target.receive_condition(action, self)
-            self.display_turn_state_and_choices()
+        while self.action_queue:
+            action = self.action_queue.popleft()
+            print("action: ", action)
+            for callback in self.action_callbacks[action.type]:
+                callback(self)
+            match action.type:
+                case ActionType.START_ROUND:
+                    self._start_round()
+                case ActionType.START_TURN:
+                    self._start_turn()
+                case ActionType.DRAW_HAND:
+                    for _ in range(self.draw_amount):
+                        self._attempt_draw()
+                case ActionType.DAMAGE:
+                    action.target.receive_damage(action, self)
+                case ActionType.BLOCK:
+                    action.target.receive_block(action, self)
+                case ActionType.CONDITION:
+                    action.target.receive_condition(action, self)
 
     def target_enemy(self):
-        enemy_index = self.player_interface.make_choice(
+        enemy_index = self.player_interface.prompt_choice(
             [
                 (Action, f"{enemy.name} {enemy.get_state_string()}")
                 for enemy in self.enemies
@@ -164,22 +170,10 @@ class RoundState:
         elif card.type == CardType.POWER:
             pass
 
-    def _play_attack(self, card, target):
-        # single enemy target, random enemy target, all enemies
-        # fixed cost, x cost
-        pass
-
-    def _play_skill(self, card):
-        pass
-
-    def _play_power(self, card):
-        pass
-
     def _start_round(self):
         for callback in self.action_callbacks[ActionType.START_ROUND]:
             callback(self)
 
-        # queue START_TURN
         self.action_queue.append(Action(ActionType.START_TURN))
 
     def _round_end(self):
@@ -230,13 +224,14 @@ class RoundState:
 
     # get state representation based on abstract player interface
     def _get_state(self):
-        pass
+        state = super().get_state()
 
     # displays turn state and invokes selected choice
+
     def display_turn_state_and_choices(self):
-        self.turn_state = self.player_interface.display_turn_state(self)
+        self.turn_state = self.player_interface.render_state(self)
         choices = self._get_turn_choices()
-        choice = self.player_interface.make_choice(choices)
+        choice = self.player_interface.prompt_choice(choices)
 
         match choices[choice][0].type:
             case ActionType.PLAY_CARD:
@@ -265,7 +260,8 @@ class RoundState:
                 choices.append(
                     (
                         Action(ActionType.PLAY_CARD),
-                        "PLAY CARD: {} ({})".format(card.name, card.description),
+                        "PLAY CARD: {} ({})".format(
+                            card.name, card.description),
                         card,
                     )
                 )
@@ -274,14 +270,17 @@ class RoundState:
             choices.append(
                 (
                     Action(ActionType.PLAY_POTION),
-                    "PLAY POTION: {} ({})".format(potion.name, potion.description),
+                    "PLAY POTION: {} ({})".format(
+                        potion.name, potion.description),
                     potion,
                 )
             )
 
         choices.append((Action(ActionType.VIEW_DRAW_PILE), "VIEW DRAW PILE"))
-        choices.append((Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE"))
-        choices.append((Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE"))
+        choices.append(
+            (Action(ActionType.VIEW_DISCARD_PILE), "VIEW DISCARD PILE"))
+        choices.append(
+            (Action(ActionType.VIEW_EXHAUST_PILE), "VIEW EXHAUST PILE"))
         choices.append((Action(ActionType.VIEW_DECK), "VIEW DECK"))
         choices.append((Action(ActionType.END_TURN), "END TURN"))
 

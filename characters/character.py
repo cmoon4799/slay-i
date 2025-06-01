@@ -139,7 +139,7 @@ class Character:
 
         return max(0, base_block)
 
-    def receive_block(self, block, round_state):
+    def receive_block(self, block, battle):
         self.block += self.calculate_block(block)
 
     def calculate_damage(self, damage) -> int:
@@ -167,7 +167,7 @@ class Character:
 
         return max(0, base_damage)
 
-    def receive_damage(self, damage, round_state):
+    def receive_damage(self, damage, battle):
         damage = self.calculate_damage(damage)
 
         block, damage = max(self.block - damage,
@@ -180,6 +180,6 @@ class Character:
 
         self.health -= damage
 
-    def receive_condition(self, condition, round_state):
+    def receive_condition(self, condition, battle):
         for condition_type, amount in condition.condition.items():
             self.conditions[condition_type] += amount

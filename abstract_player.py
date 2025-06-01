@@ -4,15 +4,18 @@ from typing import List, Tuple, Any
 from actions import ActionType
 from characters.character import Character
 from cards.cards import build_card_table
+from room.battle import BattleState
+from room.room import RoomType
+from game import GameState
 
 
 class AbstractPlayer(ABC):
     @abstractmethod
-    def display_turn_state(self, round_state):
+    def render_state(self, room_type, state):
         pass
 
     @abstractmethod
-    def make_choice(self, prompt: str, choices: List[Tuple[int, str]]) -> int:
+    def prompt_choice(self, prompt: str, choices: List[Tuple[int, str]]) -> int:
         pass
 
     # @abstractmethod
@@ -50,59 +53,84 @@ def format_box(title, lines, width=BOX_WIDTH):
 
 def combine_boxes_horizontally(boxes):
     max_lines = max(len(b) for b in boxes)
-    padded_boxes = [b + [" " * len(b[0])] * (max_lines - len(b)) for b in boxes]
+    padded_boxes = [b + [" " * len(b[0])] *
+                    (max_lines - len(b)) for b in boxes]
     return ["   ".join(line_group) for line_group in zip(*padded_boxes)]
 
 
 class ConsolePlayer(AbstractPlayer):
-    def display_turn_state(self, round_state):
-        def box(title, lines):
-            return format_box(title, lines)
+    def render_state(self, room_type, state):
+        # render default game information
+        if room_type == RoomType.BATTLE:
+            self._render_battle_state()
 
-        # Inventory Box
-        inventory_box = box(
-            "INVENTORY",
+    def _render_game_state(state):
+        print(format_box(
+            "GENERAL",
             [
-                "Potions: "
-                + (", ".join(p.name for p in round_state.player.potions) or "None"),
-                "Relics: "
-                + (", ".join(r.name for r in round_state.player.relics) or "None"),
-                f"Gold: {round_state.player.gold}",
-            ],
-        )
+                state[GameState.PLAYER_TYPE],
+                "{}/{}".format(state[GameState.HEALTH],
+                               state[GameState.MAX_HEALTH]),
+                "GOLD: {}".format(state[GameState.GOLD]),
+                "ACT: {}".format(state[GameState.ACT]),
+                "FLOOR: {}".format(state[GameState.FLOOR]),
+            ]
+        ))
 
+        print()
+
+        print(format_box(
+            "POTIONS",
+            [
+                p.name if p else "-" for p in state.potions
+            ],
+        ))
+
+        print()
+
+        print(format_box(
+            "RELICS",
+            [
+                relic.name for relic in state.relics
+            ],
+        ))
+
+        # floor, act
+
+    def _render_battle_state(state):
         # Player Box
-        player_box = box(
-            round_state.player.name, round_state.player.get_state_string().split("\n")
+        player_box = format_box(
+            state[GameState.PLAYER_TYPE].name, state.player.get_state_string().split(
+                "\n")
         )
 
         # Enemy Boxes
         enemy_boxes = [
-            box(enemy.name, enemy.get_state_string().split("\n"))
-            for i, enemy in enumerate(round_state.enemies)
+            format_box(enemy.name, enemy.get_state_string().split("\n"))
+            for i, enemy in enumerate(state.enemies)
         ]
 
         # Pile Summary
-        pile_box = box(
+        pile_box = format_box(
             "PILES",
             [
-                f"Draw: {len(round_state.draw_pile)}",
-                f"Discard: {len(round_state.discard_pile)}",
-                f"Exhaust: {len(round_state.exhaust_pile)}",
-                f"Deck: {len(round_state.player.deck)}",
+                f"Draw: {len(state.draw_pile)}",
+                f"Discard: {len(state.discard_pile)}",
+                f"Exhaust: {len(state.exhaust_pile)}",
+                f"Deck: {len(state.player.deck)}",
             ],
         )
 
         # Round Info
-        info_box = box(
+        info_box = format_box(
             "ROUND INFO",
             [
-                f"Turn: {round_state.turn}",
+                f"Turn: {state.turn}",
             ],
         )
 
         # Display vertically stacked
-        for line in combine_boxes_horizontally([inventory_box, pile_box, info_box]):
+        for line in combine_boxes_horizontally([pile_box, info_box]):
             print(line)
 
         print()  # Spacer
@@ -112,10 +140,10 @@ class ConsolePlayer(AbstractPlayer):
 
         print()  # Spacer
 
-        for line in build_card_table("HAND", round_state.hand):
+        for line in build_card_table("HAND", state.hand):
             print(line)
 
-    def make_choice(self, choices: List) -> int:
+    def prompt_choice(self, choices: List) -> int:
         print("\n== CHOICES ==\n")
         for i in range(len(choices)):
             print("({}) {}".format(i, choices[i][1]))

@@ -23,12 +23,12 @@ class Defend(Card):
             targeted=False,
         )
 
-    def play_card(self, target, round_state):
+    def play_card(self, target, battle):
         return [
             Block(
                 block=5,
-                source=round_state.player,
-                target=round_state.player,
+                source=battle.player,
+                target=battle.player,
             )
         ]
 
@@ -45,11 +45,11 @@ class Strike(Card):
             targeted=True,
         )
 
-    def play_card(self, target, round_state):
+    def play_card(self, target, battle):
         return [
             Damage(
                 damage=6,
-                source=round_state.player,
+                source=battle.player,
                 target=target,
             ),
         ]
@@ -67,18 +67,18 @@ class Bash(Card):
             targeted=True,
         )
 
-    def play_card(self, target, round_state):
+    def play_card(self, target, battle):
         return [
             Damage(
                 damage=8,
-                source=round_state.player,
+                source=battle.player,
                 target=target,
             ),
             Condition(
                 condition={
                     ConditionType.VULNERABLE: 2,
                 },
-                source=round_state.player,
+                source=battle.player,
                 target=target,
             ),
         ]
@@ -97,12 +97,12 @@ class Whirlwind(Card):
             targeted=False,
         )
 
-    def play_card(self, target, round_state):
+    def play_card(self, target, battle):
         return [
             Damage(
                 damage=self.damage,
-                source=round_state.player,
+                source=battle.player,
                 target=enemy,
             )
-            for enemy in round_state.enemies
-        ] * round_state.player.energy
+            for enemy in battle.enemies
+        ] * battle.player.energy
